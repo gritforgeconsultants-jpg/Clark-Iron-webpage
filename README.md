@@ -1,2 +1,10 @@
-# Clark-Iron-webpage
-Official marketing website for Clark Iron Erectors
+# Clark Iron Webpage
+
+## Overview
+<one description>
+
+## Project Structure
+<structure details>
+
+## Notes
+<any extra info from the other section>
