@@ -1,0 +1,657 @@
+/* ========================================
+   CLARK IRON ERECTORS - COMMERCIAL HOMEPAGE
+   GC-First Positioning | Hero Background Treatment
+   ======================================== */
+
+/* === RESET & BASE === */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    /* Brand Colors */
+    --primary-color: #c8102e;
+    --primary-dark: #9a0c23;
+    --secondary-color: #1a1a1a;
+    --accent-color: #f5a623;
+
+    /* Neutrals */
+    --white: #ffffff;
+    --light-gray: #f4f4f4;
+    --medium-gray: #666666;
+    --dark-gray: #333333;
+    --black: #1a1a1a;
+
+    /* Spacing */
+    --container-max: 1200px;
+    --section-padding: 80px 0;
+    --mobile-padding: 40px 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    line-height: 1.6;
+    color: var(--dark-gray);
+    background: var(--white);
+}
+
+.container {
+    max-width: var(--container-max);
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+/* === HEADER === */
+.site-header {
+    background: var(--white);
+    border-bottom: 1px solid #e5e5e5;
+    padding: 16px 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 32px;
+}
+
+.logo h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--secondary-color);
+    letter-spacing: -0.5px;
+}
+
+.main-nav ul {
+    display: flex;
+    list-style: none;
+    gap: 32px;
+}
+
+.main-nav a {
+    text-decoration: none;
+    color: var(--dark-gray);
+    font-weight: 500;
+    font-size: 15px;
+    transition: color 0.2s;
+}
+
+.main-nav a:hover {
+    color: var(--primary-color);
+}
+
+.header-contact {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.phone-link {
+    font-weight: 600;
+    color: var(--primary-color);
+    text-decoration: none;
+    font-size: 16px;
+}
+
+.location {
+    color: var(--medium-gray);
+    font-size: 14px;
+}
+
+/* === SECTION 1: HERO === */
+/* CRITICAL: This is where the crane/precast background image goes */
+.hero {
+    position: relative;
+    min-height: 75vh;
+    display: flex;
+    align-items: center;
+    background-image: url('../images/crane-precast-hero.webp');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment : scroll;
+}
+
+/* Dark gradient overlay for text legibility (left-weighted) */
+.hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        90deg,
+        rgba(0, 0, 0, 0.85) 0%,
+        rgba(0, 0, 0, 0.65) 35%,
+        rgba(0, 0, 0, 0.35) 65%,
+        rgba(0, 0, 0, 0.15) 85%,
+        rgba(0, 0, 0, 0) 100%
+    );
+    z-index: 1;
+}
+
+.hero .container {
+    position: relative;
+    z-index: 2;
+}
+
+.hero-content {
+    max-width: 720px;
+    padding: 64px 0;
+}
+
+.hero h1 {
+    font-size: 52px;
+    font-weight: 800;
+    color: var(--white);
+    line-height: 1.15;
+    margin-bottom: 24px;
+    letter-spacing: -1px;
+}
+
+.hero-subheadline {
+    font-size: 20px;
+    color: var(--white);
+    line-height: 1.5;
+    margin-bottom: 32px;
+    opacity: 0.95;
+}
+
+.hero-bullets {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 40px;
+}
+
+.bullet-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--white);
+    font-size: 16px;
+}
+
+.check-icon {
+    background: var(--primary-color);
+    color: var(--white);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.hero-ctas {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.hero-microline {
+    font-size: 14px;
+    color: var(--white);
+    opacity: 0.8;
+}
+
+/* === BUTTONS === */
+.btn {
+    display: inline-block;
+    padding: 16px 32px;
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: all 0.3s;
+    text-align: center;
+    border: 2px solid transparent;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: var(--white);
+}
+
+.btn-primary:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(200, 16, 46, 0.3);
+}
+
+.btn-secondary {
+    background: transparent;
+    color: var(--white);
+    border: 2px solid var(--white);
+}
+
+.btn-secondary:hover {
+    background: var(--white);
+    color: var(--secondary-color);
+}
+
+.btn-outline {
+    background: transparent;
+    color: var(--primary-color);
+    border: 2px solid var(--primary-color);
+}
+
+.btn-outline:hover {
+    background: var(--primary-color);
+    color: var(--white);
+}
+
+/* === SECTION 2: TRUST STRIP === */
+.trust-strip {
+    background: var(--secondary-color);
+    padding: 48px 0;
+}
+
+.trust-header {
+    text-align: center;
+    color: var(--white);
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 32px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.trust-chips {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 24px;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.chip {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 24px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.chip-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.chip-text {
+    color: var(--white);
+    font-weight: 500;
+    font-size: 15px;
+}
+
+/* === SECTION 3: SERVICES === */
+.services {
+    padding: var(--section-padding);
+    background: var(--white);
+}
+
+.services h2 {
+    font-size: 42px;
+    font-weight: 700;
+    color: var(--secondary-color);
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+.section-intro {
+    text-align: center;
+    font-size: 18px;
+    color: var(--medium-gray);
+    max-width: 700px;
+    margin: 0 auto 48px;
+}
+
+.services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 32px;
+}
+
+.service-card {
+    padding: 32px;
+    background: var(--light-gray);
+    border-radius: 8px;
+    border-left: 4px solid var(--primary-color);
+    transition: all 0.3s;
+}
+
+.service-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+}
+
+.service-card h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--secondary-color);
+    margin-bottom: 12px;
+}
+
+.service-card p {
+    font-size: 15px;
+    color: var(--dark-gray);
+    line-height: 1.6;
+}
+
+/* === SECTION 4: FOR GENERAL CONTRACTORS === */
+.for-gcs {
+    padding: var(--section-padding);
+    background: var(--light-gray);
+}
+
+.for-gcs h2 {
+    font-size: 42px;
+    font-weight: 700;
+    color: var(--secondary-color);
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+.gc-subhead {
+    text-align: center;
+    font-size: 20px;
+    color: var(--dark-gray);
+    max-width: 800px;
+    margin: 0 auto 48px;
+    font-weight: 500;
+}
+
+.gc-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 48px;
+    margin-bottom: 48px;
+}
+
+.gc-column h3 {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 16px;
+}
+
+.column-header {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--secondary-color);
+    margin-bottom: 16px;
+}
+
+.gc-list {
+    list-style: none;
+    padding: 0;
+}
+
+.gc-list li {
+    padding: 12px 0;
+    padding-left: 32px;
+    position: relative;
+    font-size: 15px;
+    color: var(--dark-gray);
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.gc-list li:last-child {
+    border-bottom: none;
+}
+
+.gc-list li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--primary-color);
+    font-weight: 700;
+}
+
+.gc-closer {
+    background: var(--secondary-color);
+    color: var(--white);
+    padding: 32px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.gc-closer p {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+}
+
+/* === SECTION 5: PROJECT TYPES === */
+.project-types {
+    padding: var(--section-padding);
+    background: var(--white);
+}
+
+.project-types h2 {
+    font-size: 42px;
+    font-weight: 700;
+    color: var(--secondary-color);
+    margin-bottom: 48px;
+    text-align: center;
+}
+
+.project-list {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.project-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+    padding: 24px;
+    background: var(--light-gray);
+    border-radius: 8px;
+    transition: all 0.3s;
+}
+
+.project-item:hover {
+    background: var(--white);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.project-icon {
+    font-size: 40px;
+    flex-shrink: 0;
+}
+
+.project-info h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--secondary-color);
+    margin-bottom: 8px;
+}
+
+.project-info p {
+    font-size: 15px;
+    color: var(--medium-gray);
+}
+
+/* === SECTION 6: SOCIAL PROOF === */
+.social-proof {
+    padding: var(--section-padding);
+    background: var(--light-gray);
+    text-align: center;
+}
+
+.social-proof h2 {
+    font-size: 42px;
+    font-weight: 700;
+    color: var(--secondary-color);
+    margin-bottom: 16px;
+}
+
+.proof-intro {
+    font-size: 18px;
+    color: var(--dark-gray);
+    margin-bottom: 32px;
+}
+
+/* === SECTION 7: FINAL CTA === */
+.final-cta {
+    padding: 80px 0;
+    background: var(--secondary-color);
+    text-align: center;
+}
+
+.final-cta h2 {
+    font-size: 48px;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 16px;
+}
+
+.cta-copy {
+    font-size: 20px;
+    color: var(--white);
+    margin-bottom: 40px;
+    opacity: 0.9;
+}
+
+.cta-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.cta-reassurance {
+    font-size: 16px;
+    color: var(--white);
+    opacity: 0.8;
+}
+
+/* === FOOTER === */
+.site-footer {
+    background: var(--black);
+    color: var(--white);
+    padding: 48px 0 24px;
+}
+
+.footer-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 32px;
+    margin-bottom: 32px;
+}
+
+.footer-col h4 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: var(--white);
+}
+
+.footer-col p {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 8px;
+}
+
+.footer-col a {
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.footer-col a:hover {
+    color: var(--primary-color);
+}
+
+.footer-bottom {
+    text-align: center;
+    padding-top: 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.footer-bottom p {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .main-nav ul {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 16px;
+    }
+
+    .hero {
+        min-height: 60vh;
+        background-attachment: scroll;
+    }
+
+    .hero h1 {
+        font-size: 36px;
+    }
+
+    .hero-subheadline {
+        font-size: 18px;
+    }
+
+    .hero-ctas {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+    }
+
+    .services h2,
+    .for-gcs h2,
+    .project-types h2,
+    .social-proof h2 {
+        font-size: 32px;
+    }
+
+    .final-cta h2 {
+        font-size: 36px;
+    }
+
+    .gc-content {
+        grid-template-columns: 1fr;
+        gap: 32px;
+    }
+
+    .trust-chips {
+        grid-template-columns: 1fr;
+    }
+
+    .project-item {
+        flex-direction: column;
+    }
+
+    .cta-buttons {
+        flex-direction: column;
+    }
+}
