@@ -1,0 +1,78 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+  color: #111;
+  background: #fff;
+}
+
+.container {
+  max-width: 1200px;
+  margin: auto;
+  padding: 1rem;
+}
+
+.site-header {
+  background: #000;
+  color: #fff;
+}
+
+.site-header .container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.site-header nav a {
+  color: #fff;
+  margin-left: 1rem;
+  text-decoration: none;
+}
+
+.logo {
+  height: 48px;
+}
+
+.hero {
+  position: relative;
+  height: 70vh;
+  background: url("/public/images/hero/hero-tiltwall-crane.jpg") center/cover no-repeat;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 4rem;
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+}
+
+.hero h1,
+.hero p {
+  position: relative;
+  z-index: 1;
+  max-width: 700px;
+}
+
+.section {
+  padding: 4rem 2rem;
+}
+
+.section.dark {
+  background: #111;
+  color: #fff;
+}
+
+.site-footer {
+  background: #000;
+  color: #fff;
+  text-align: center;
+  padding: 1rem;
+}
