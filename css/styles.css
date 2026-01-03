@@ -37,6 +37,24 @@ body {
     background: var(--white);
 }
 
+/* === SKIP TO CONTENT (Accessibility) === */
+.skip-to-content {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: var(--primary-color);
+    color: var(--white);
+    padding: 8px 16px;
+    text-decoration: none;
+    font-weight: 600;
+    z-index: 1000;
+    transition: top 0.3s;
+}
+
+.skip-to-content:focus {
+    top: 0;
+}
+
 .container {
     max-width: var(--container-max);
     margin: 0 auto;
@@ -61,7 +79,7 @@ body {
     gap: 32px;
 }
 
-.logo h2 {
+.logo-text {
     font-size: 20px;
     font-weight: 700;
     color: var(--secondary-color);
@@ -86,6 +104,12 @@ body {
     color: var(--primary-color);
 }
 
+.main-nav a:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 4px;
+    border-radius: 2px;
+}
+
 .header-contact {
     display: flex;
     align-items: center;
@@ -97,6 +121,12 @@ body {
     color: var(--primary-color);
     text-decoration: none;
     font-size: 16px;
+}
+
+.phone-link:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 4px;
+    border-radius: 2px;
 }
 
 .location {
@@ -231,6 +261,11 @@ body {
     box-shadow: 0 8px 16px rgba(200, 16, 46, 0.3);
 }
 
+.btn-primary:focus {
+    outline: 3px solid var(--accent-color);
+    outline-offset: 3px;
+}
+
 .btn-secondary {
     background: transparent;
     color: var(--white);
@@ -242,6 +277,11 @@ body {
     color: var(--secondary-color);
 }
 
+.btn-secondary:focus {
+    outline: 3px solid var(--accent-color);
+    outline-offset: 3px;
+}
+
 .btn-outline {
     background: transparent;
     color: var(--primary-color);
@@ -251,6 +291,11 @@ body {
 .btn-outline:hover {
     background: var(--primary-color);
     color: var(--white);
+}
+
+.btn-outline:focus {
+    outline: 3px solid var(--primary-color);
+    outline-offset: 3px;
 }
 
 /* === SECTION 2: TRUST STRIP === */
