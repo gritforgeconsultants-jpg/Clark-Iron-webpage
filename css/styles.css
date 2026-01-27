@@ -86,14 +86,21 @@ body {
     letter-spacing: -0.5px;
 }
 
+.logo {
+    flex-shrink: 0;
+}
+
 .logo a {
     display: block;
 }
 
 .logo-img {
-    height: 60px;
+    height: 50px;
+    max-height: 50px;
     width: auto;
+    max-width: 200px;
     display: block;
+    object-fit: contain;
 }
 
 .main-nav ul {
