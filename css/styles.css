@@ -86,6 +86,16 @@ body {
     letter-spacing: -0.5px;
 }
 
+.logo a {
+    display: block;
+}
+
+.logo-img {
+    height: 60px;
+    width: auto;
+    display: block;
+}
+
 .main-nav ul {
     display: flex;
     list-style: none;
