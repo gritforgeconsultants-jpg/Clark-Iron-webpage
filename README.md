@@ -106,7 +106,9 @@ Fully responsive across:
 **Clark Iron Erectors Inc**
 Cedar Park, TX 78613
 Phone: (512) 779-0919
-Email: bids@clarkironerectors.com
+Bidding: arron@clarkironerectors.com
+Partnerships: sean@clarkironerectors.com
+Field Ops: troy@clarkironerectors.com
 
 ---
 
