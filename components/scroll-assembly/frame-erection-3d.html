@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Steel Frame Erection — 3D</title>
+<style>
+    :root {
+        --bg: #0b0e12;
+        --text: #e2e8f0;
+        --muted: #7b8798;
+        --accent: #f59e0b;
+        --line: rgba(148, 163, 184, 0.18);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+        min-height: 100vh;
+        padding: 16px;
+    }
+    .wrap { max-width: 1240px; margin: 0 auto; }
+    .top { padding: 8px 0 14px; }
+    .back { color: var(--muted); text-decoration: none; font-size: 0.8rem; }
+    .back:hover { color: var(--accent); }
+    h1 { font-size: clamp(1.1rem, 2.6vw, 1.6rem); font-weight: 700; letter-spacing: -0.01em; }
+    .sub { color: var(--muted); font-size: 0.85rem; margin-top: 2px; }
+
+    .stage {
+        position: relative;
+        height: min(76vh, 780px);
+        min-height: 420px;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        background: radial-gradient(ellipse 75% 65% at 50% 45%, #2a333f 0%, #161b22 55%, #0b0e12 100%);
+        cursor: grab;
+        user-select: none; -webkit-user-select: none;
+    }
+    .stage.dragging { cursor: grabbing; }
+    .stage canvas { display: block; width: 100%; height: 100%; }
+
+    .readout {
+        position: absolute; left: 12px; top: 12px;
+        display: flex; gap: 18px; flex-wrap: wrap;
+        padding: 10px 14px; border-radius: 10px;
+        background: rgba(11, 14, 18, 0.72); border: 1px solid var(--line);
+        backdrop-filter: blur(8px);
+        pointer-events: none;
+    }
+    .readout div { min-width: 0; }
+    .readout small { display: block; color: var(--muted); font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em; }
+    .readout b { font-size: 1.05rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .readout .phase b { color: var(--accent); }
+
+    .tip {
+        position: absolute; left: 0; top: 0; pointer-events: none; opacity: 0;
+        transition: opacity 0.12s;
+        padding: 6px 10px; border-radius: 6px; font-size: 12px; white-space: nowrap;
+        background: rgba(11, 14, 18, 0.92); border: 1px solid rgba(245, 158, 11, 0.4);
+    }
+    .tip b { display: block; color: #fff; font-size: 12.5px; }
+    .tip span { color: var(--muted); font-size: 11px; }
+
+    .hud {
+        position: absolute; left: 12px; right: 12px; bottom: 12px;
+        display: flex; align-items: center; gap: 14px;
+        padding: 10px 12px; border-radius: 10px;
+        background: rgba(11, 14, 18, 0.72); border: 1px solid var(--line);
+        backdrop-filter: blur(8px);
+    }
+    .hud button {
+        flex: none; min-width: 96px;
+        font: 600 0.82rem/1 inherit; letter-spacing: 0.02em;
+        padding: 10px 14px; border-radius: 7px; cursor: pointer;
+        color: #0b0e12; background: var(--accent); border: 0;
+    }
+    .hud button:hover { background: #fbbf24; }
+    .hud input[type=range] { flex: 1; min-width: 60px; accent-color: var(--accent); cursor: pointer; }
+    .hud .hint { flex: none; color: var(--muted); font-size: 0.75rem; }
+    @media (max-width: 620px) {
+        .hud .hint { display: none; }
+        .readout { gap: 12px; padding: 8px 10px; }
+        .readout b { font-size: 0.9rem; }
+    }
+
+    .fallback { display: none; position: absolute; inset: 0; align-items: center; justify-content: center; text-align: center; padding: 24px; color: var(--muted); }
+    .stage.no-webgl .fallback { display: flex; }
+    .stage.no-webgl canvas, .stage.no-webgl .hud, .stage.no-webgl .readout { display: none; }
+    .note { color: var(--muted); font-size: 0.75rem; margin-top: 10px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+    <div class="top">
+        <a class="back" href="../index.html">&larr; Components</a>
+        <h1>Steel Frame Erection</h1>
+        <p class="sub">Two-story braced frame, 60 ft &times; 40 ft, set piece by piece in erection order</p>
+    </div>
+
+    <div class="stage" id="stage">
+        <canvas id="scene"></canvas>
+        <div class="readout">
+            <div><small>Pieces set</small><b id="count">0 / 0</b></div>
+            <div><small>Steel in place</small><b id="tons">0.0 tons</b></div>
+            <div class="phase"><small>Stage</small><b id="phase">Ready</b></div>
+        </div>
+        <div class="tip" id="tip"></div>
+        <div class="hud">
+            <button id="play" type="button">Play</button>
+            <input id="scrub" type="range" min="0" max="1000" value="0" aria-label="Erection progress">
+            <span class="hint">Drag to rotate &middot; slide to scrub the sequence</span>
+        </div>
+        <div class="fallback">This view needs WebGL, which this browser has turned off.</div>
+    </div>
+    <p class="note">Illustrative frame. Tonnage is added up from the nominal weight per foot of each section shown.</p>
+</div>
+
+<script type="module">
+import * as THREE from '../lib/three.bundle.min.js';
+
+const stage = document.getElementById('stage');
+const canvas = document.getElementById('scene');
+
+let renderer;
+try {
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+} catch (err) {
+    stage.classList.add('no-webgl');
+    throw err;
+}
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.08;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFShadowMap;
+
+const scene = new THREE.Scene();
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new THREE.RoomEnvironment(), 0.03).texture;
+scene.environmentIntensity = 0.95;
+
+const camera = new THREE.PerspectiveCamera(22, 1, 60, 20000);
+camera.position.set(0.62, 0.3, 0.78).multiplyScalar(2400);
+
+const controls = new THREE.OrbitControls(camera, canvas);
+controls.enablePan = false;
+controls.enableZoom = false;
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.rotateSpeed = 0.7;
+controls.minPolarAngle = Math.PI * 0.2;
+controls.maxPolarAngle = Math.PI * 0.49;
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+controls.autoRotate = !reduceMotion;
+controls.autoRotateSpeed = 0.45;
+controls.addEventListener('start', () => { controls.autoRotate = false; stage.classList.add('dragging'); });
+controls.addEventListener('end', () => stage.classList.remove('dragging'));
+let needsRender = true;
+controls.addEventListener('change', () => { needsRender = true; });
+
+const key = new THREE.DirectionalLight(0xfff0dd, 2.3);
+key.position.set(700, 1150, 850);
+key.target.position.set(0, 150, 0);
+key.castShadow = true;
+key.shadow.mapSize.set(2048, 2048);
+Object.assign(key.shadow.camera, { left: -720, right: 720, top: 720, bottom: -720, near: 200, far: 3600 });
+key.shadow.bias = -0.0004;
+key.shadow.normalBias = 0.8;
+scene.add(key, key.target);
+const rim = new THREE.DirectionalLight(0x9cc2ff, 1.4);
+rim.position.set(-900, 500, -900);
+scene.add(rim);
+
+/* ---------- procedural surface textures ---------- */
+function mulberry32(a) {
+    return function () {
+        a |= 0; a = a + 0x6D2B79F5 | 0;
+        let t = Math.imul(a ^ a >>> 15, 1 | a);
+        t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+}
+const rng = mulberry32(23);
+const SIZE = 512;
+function surfaceCanvas(base, blotches, grain) {
+    const c = document.createElement('canvas');
+    c.width = c.height = SIZE;
+    const x = c.getContext('2d');
+    x.fillStyle = base;
+    x.fillRect(0, 0, SIZE, SIZE);
+    for (let i = 0; i < 70; i++) {
+        const px = rng() * SIZE, py = rng() * SIZE, r = 30 + rng() * 130;
+        const col = blotches[Math.floor(rng() * blotches.length)];
+        const g = x.createRadialGradient(px, py, 0, px, py, r);
+        g.addColorStop(0, col);
+        g.addColorStop(1, col.replace(/[\d.]+\)$/, '0)'));
+        x.fillStyle = g;
+        for (const ox of [-SIZE, 0, SIZE]) for (const oy of [-SIZE, 0, SIZE]) {
+            x.setTransform(1, 0, 0, 1, ox, oy);
+            x.fillRect(px - r, py - r, 2 * r, 2 * r);
+        }
+    }
+    x.setTransform(1, 0, 0, 1, 0, 0);
+    for (let i = 0; i < 18000; i++) {
+        x.fillStyle = (rng() < 0.5 ? 'rgba(0,0,0,' : 'rgba(255,255,255,') + grain + ')';
+        x.fillRect(rng() * SIZE, rng() * SIZE, 1, 1);
+    }
+    return c;
+}
+const maxAniso = renderer.capabilities.getMaxAnisotropy();
+function tex(canvasEl, repeatX, repeatY, srgb) {
+    const t = new THREE.CanvasTexture(canvasEl);
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.repeat.set(repeatX, repeatY);
+    t.anisotropy = maxAniso;
+    if (srgb) t.colorSpace = THREE.SRGBColorSpace;
+    return t;
+}
+const colorCanvas = surfaceCanvas('#ffffff', ['rgba(70,90,130,0.09)', 'rgba(125,95,70,0.07)', 'rgba(0,0,0,0.09)'], 0.02);
+const roughCanvas = surfaceCanvas('#c8c8c8', ['rgba(0,0,0,0.06)', 'rgba(255,255,255,0.07)'], 0.04);
+const concreteCanvas = surfaceCanvas('#ffffff', ['rgba(0,0,0,0.04)', 'rgba(90,80,60,0.035)'], 0.05);
+
+const steelRough = tex(roughCanvas, 1 / 90, 1 / 90, false);
+const steelMat = new THREE.MeshStandardMaterial({
+    color: 0x77828f, metalness: 0.84, roughness: 0.55,
+    map: tex(colorCanvas, 1 / 140, 1 / 140, true),
+    roughnessMap: steelRough,
+    emissive: 0xf59e0b, emissiveIntensity: 0
+});
+const whiteMat = new THREE.MeshStandardMaterial({ color: 0xe9ebee, metalness: 0.05, roughness: 0.5, emissive: 0xf59e0b, emissiveIntensity: 0 });
+const plateMat = new THREE.MeshStandardMaterial({ color: 0x8e959e, metalness: 0.86, roughness: 0.5 });
+const zincMat = new THREE.MeshStandardMaterial({ color: 0xa9afb7, metalness: 1, roughness: 0.34 });
+const concreteMat = new THREE.MeshStandardMaterial({
+    color: 0x8f8d87, metalness: 0, roughness: 0.94,
+    map: tex(concreteCanvas, 21, 15, true), bumpMap: tex(roughCanvas, 42, 30, false), bumpScale: 0.5
+});
+
+/* ---------- geometry helpers (units: inches) ---------- */
+function roundedPoly(pts, radii) {
+    const shape = new THREE.Shape();
+    const n = pts.length;
+    const toward = (p, q, r) => {
+        const dx = q[0] - p[0], dy = q[1] - p[1], len = Math.hypot(dx, dy);
+        const k = Math.min(r, len / 2) / len;
+        return [p[0] + dx * k, p[1] + dy * k];
+    };
+    for (let i = 0; i < n; i++) {
+        const p = pts[i], prev = pts[(i - 1 + n) % n], next = pts[(i + 1) % n];
+        const r = Array.isArray(radii) ? radii[i] : radii;
+        const a = toward(p, prev, r), b = toward(p, next, r);
+        if (i === 0) shape.moveTo(a[0], a[1]); else shape.lineTo(a[0], a[1]);
+        if (r > 0) shape.quadraticCurveTo(p[0], p[1], b[0], b[1]);
+    }
+    shape.closePath();
+    return shape;
+}
+function extrude(shape, t, b, curveSegments = 6) {
+    const g = new THREE.ExtrudeGeometry(shape, {
+        depth: t - 2 * b, bevelEnabled: true, bevelThickness: b, bevelSize: b,
+        bevelOffset: -b, bevelSegments: 1, curveSegments
+    });
+    g.translate(0, 0, b);
+    return g;
+}
+function iSectionShape(s) {
+    const D = s.d / 2, B = s.bf / 2, W = s.tw / 2, rt = 0.08, rk = s.k;
+    return roundedPoly([
+        [-D, -B], [-D + s.tf, -B], [-D + s.tf, -W], [D - s.tf, -W], [D - s.tf, -B], [D, -B],
+        [D, B], [D - s.tf, B], [D - s.tf, W], [-D + s.tf, W], [-D + s.tf, B], [-D, B]
+    ], [rt, rt, rk, rk, rt, rt, rt, rt, rk, rk, rt, rt]);
+}
+const AX = new THREE.Vector3(1, 0, 0), AY = new THREE.Vector3(0, 1, 0), AZ = new THREE.Vector3(0, 0, 1);
+const ALONG_X = new THREE.Matrix4().makeBasis(AY, AZ, AX);   // section depth -> Y, extrusion -> X
+
+const SECTIONS = {
+    column: { name: 'W12×65', d: 12.1, bf: 12.0, tf: 0.605, tw: 0.39, k: 0.6, plf: 65 },
+    girder: { name: 'W18×50', d: 18.0, bf: 7.5, tf: 0.57, tw: 0.355, k: 0.5, plf: 50 },
+    beam: { name: 'W16×31', d: 15.9, bf: 5.53, tf: 0.44, tw: 0.275, k: 0.4, plf: 31 },
+    filler: { name: 'W16×26', d: 15.7, bf: 5.5, tf: 0.345, tw: 0.25, k: 0.4, plf: 26 }
+};
+const BRACE = { name: 'HSS5×5×⅜', size: 5, plf: 22.4 };
+
+const geoCache = new Map();
+function cached(key, make) {
+    if (!geoCache.has(key)) geoCache.set(key, make());
+    return geoCache.get(key);
+}
+// Horizontal member along local X, centred, top of steel at y = 0.
+const memberGeo = (type, len) => cached(type + len.toFixed(1), () => {
+    const s = SECTIONS[type];
+    return extrude(iSectionShape(s), len, 0.08).applyMatrix4(ALONG_X).translate(-len / 2, -s.d / 2, 0);
+});
+const columnGeo = height => cached('col' + height, () => extrude(iSectionShape(SECTIONS.column), height, 0.08).rotateX(-Math.PI / 2));
+const braceGeo = len => cached('brace' + len.toFixed(1), () => {
+    const h = BRACE.size / 2;
+    return extrude(roundedPoly([[-h, -h], [h, -h], [h, h], [-h, h]], 0.7), len, 0.08).applyMatrix4(ALONG_X).translate(-len / 2, 0, 0);
+});
+
+function mesh(geo, mat) {
+    const m = new THREE.Mesh(geo, mat);
+    m.castShadow = m.receiveShadow = true;
+    return m;
+}
+
+/* ---------- site: slab, base plates, anchor rods ---------- */
+const GRID_X = [-360, -120, 120, 360];
+const GRID_Z = [-240, 0, 240];
+const LEVEL_2 = 168, ROOF = 324, BASE_T = 1.25, COLUMN_H = ROOF + 6 - BASE_T;
+
+const site = new THREE.Group();
+scene.add(site);
+const slab = mesh(new THREE.BoxGeometry(840, 8, 600), concreteMat);
+slab.position.y = -4;
+slab.castShadow = false;
+site.add(slab);
+{
+    const plateGeo = extrude(roundedPoly([[-10, -10], [10, -10], [10, 10], [-10, 10]], 0.3), BASE_T, 0.1).rotateX(-Math.PI / 2);
+    const rodGeo = new THREE.CylinderGeometry(0.5, 0.5, 4.5, 12).translate(0, 2.25, 0);
+    const nutGeo = new THREE.CylinderGeometry(1.0, 1.0, 1, 6).translate(0, BASE_T + 0.5, 0);
+    for (const x of GRID_X) for (const z of GRID_Z) {
+        const plate = mesh(plateGeo, plateMat);
+        plate.position.set(x, 0, z);
+        site.add(plate);
+        for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
+            const rod = mesh(rodGeo, zincMat), nut = mesh(nutGeo, zincMat);
+            rod.position.set(x + sx * 7.5, 0, z + sz * 7.5);
+            nut.position.copy(rod.position);
+            site.add(rod, nut);
+        }
+    }
+}
+const ground = new THREE.Mesh(new THREE.CircleGeometry(5000, 64).rotateX(-Math.PI / 2), new THREE.ShadowMaterial({ opacity: 0.4 }));
+ground.position.y = -8;
+ground.receiveShadow = true;
+scene.add(ground);
+
+/* ---------- frame pieces ---------- */
+const frame = new THREE.Group();
+scene.add(frame);
+const pieces = [];
+const rigMat = new THREE.LineBasicMaterial({ color: 0xaeb6c0, transparent: true, opacity: 0.75 });
+const HOOK_H = 4000;
+
+function addPiece(geo, info) {
+    const mat = (info.white ? whiteMat : steelMat).clone();
+    const body = mesh(geo, mat);
+    if (info.tilt) body.rotation.z = info.tilt;
+    const group = new THREE.Group();
+    group.add(body);
+    const half = info.rigHalf || 0, top = info.rigTop || 0;
+    const pts = half
+        ? [-half, top, 0, 0, top + 70, 0, half, top, 0, 0, top + 70, 0, 0, top + 70, 0, 0, HOOK_H, 0]
+        : [0, top, 0, 0, HOOK_H, 0];
+    const rig = new THREE.LineSegments(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(pts, 3)), rigMat);
+    rig.raycast = () => {};
+    group.add(rig);
+    group.position.copy(info.pos);
+    group.rotation.y = info.yaw || 0;
+    group.userData.part = { name: info.label, spec: info.spec };
+    frame.add(group);
+    const piece = { group, rig, mat, y: info.pos.y, yaw: info.yaw || 0, swing: pieces.length % 2 ? 1 : -1, phase: info.phase, lb: info.lb, sort: info.sort };
+    group.userData.piece = piece;
+    return piece;
+}
+const feet = inches => (inches / 12).toFixed(0) + ' ft';
+
+function column(x, z) {
+    const s = SECTIONS.column;
+    return addPiece(columnGeo(COLUMN_H), {
+        pos: new THREE.Vector3(x, BASE_T, z), rigTop: COLUMN_H, phase: 'Setting columns',
+        label: s.name + ' column', spec: feet(COLUMN_H) + ' two-story column', lb: s.plf * COLUMN_H / 12, sort: [x, z]
+    });
+}
+function horizontal(type, role, x, y, z, len, alongZ, phase, extra = {}) {
+    const s = SECTIONS[type];
+    return addPiece(memberGeo(type, len), Object.assign({
+        pos: new THREE.Vector3(x, y, z), yaw: alongZ ? Math.PI / 2 : 0, rigHalf: len * 0.28, phase,
+        label: s.name + ' ' + role, spec: feet(len) + ' span', lb: s.plf * len / 12, sort: [x, alongZ ? 1 : 0, z]
+    }, extra));
+}
+function brace(x0, y0, x1, y1, z, phase) {
+    const len = Math.hypot(x1 - x0, y1 - y0);
+    return addPiece(braceGeo(len), {
+        pos: new THREE.Vector3((x0 + x1) / 2, (y0 + y1) / 2, z), tilt: Math.atan2(y1 - y0, x1 - x0), phase,
+        label: BRACE.name + ' brace', spec: feet(len) + ' diagonal', lb: BRACE.plf * len / 12, sort: [z, y0, x0]
+    });
+}
+const bySort = (a, b) => { for (let i = 0; i < a.sort.length; i++) if (a.sort[i] !== b.sort[i]) return a.sort[i] - b.sort[i]; return 0; };
+
+let topping = null;
+function level(y, phase, isRoof) {
+    const list = [];
+    const girderLen = 240 - SECTIONS.column.d - 1;
+    GRID_Z.forEach(z => {
+        for (let i = 0; i < 3; i++) {
+            const x = (GRID_X[i] + GRID_X[i + 1]) / 2;
+            if (isRoof && z === 240 && i === 1) {
+                topping = horizontal('girder', 'topping-out beam', x, y, z, girderLen, false, 'Topping out', { white: true });
+            } else list.push(horizontal('girder', 'girder', x, y, z, girderLen, false, phase));
+        }
+    });
+    for (let j = 0; j < 2; j++) {
+        const z = (GRID_Z[j] + GRID_Z[j + 1]) / 2;
+        GRID_X.forEach(x => list.push(horizontal('beam', 'beam', x, y, z, 239, true, phase)));
+        for (let i = 0; i < 3; i++) for (const f of [1, 2]) {
+            list.push(horizontal('filler', 'filler beam', GRID_X[i] + 80 * f, y - 0.1, z, 239, true, phase));
+        }
+    }
+    return list.sort(bySort);
+}
+function bracing(y0, y1, phase) {
+    const list = [];
+    for (const z of [-240, 240]) {
+        list.push(brace(-108, y0, 108, y1, z - 3, phase), brace(108, y0, -108, y1, z + 3, phase));
+    }
+    return list.sort(bySort);
+}
+
+const columns = [];
+GRID_X.forEach(x => GRID_Z.forEach(z => columns.push(column(x, z))));
+pieces.push(
+    ...columns,
+    ...level(LEVEL_2, 'Level 2 framing', false),
+    ...bracing(8, LEVEL_2 - 24, 'Lower bracing'),
+    ...level(ROOF, 'Roof framing', true),
+    ...bracing(LEVEL_2 + 6, ROOF - 24, 'Upper bracing'),
+    topping
+);
+
+/* ---------- topping-out beam: flag and evergreen ---------- */
+const flagCanvas = document.createElement('canvas');
+flagCanvas.width = 380; flagCanvas.height = 200;
+{
+    const x = flagCanvas.getContext('2d');
+    for (let i = 0; i < 13; i++) {
+        x.fillStyle = i % 2 ? '#f4f4f2' : '#b22234';
+        x.fillRect(0, i * 200 / 13, 380, 200 / 13 + 1);
+    }
+    x.fillStyle = '#3c3b6e';
+    x.fillRect(0, 0, 152, 200 * 7 / 13);
+    x.fillStyle = '#ffffff';
+    for (let r = 0; r < 9; r++) for (let c = 0; c < (r % 2 ? 5 : 6); c++) {
+        x.beginPath();
+        x.arc(13 + c * 25.2 + (r % 2 ? 12.6 : 0), 11 + r * 10.8, 3.2, 0, Math.PI * 2);
+        x.fill();
+    }
+}
+const flagTex = new THREE.CanvasTexture(flagCanvas);
+flagTex.colorSpace = THREE.SRGBColorSpace;
+flagTex.anisotropy = maxAniso;
+const FLAG_W = 57, FLAG_H = 30;
+const flagGeo = new THREE.PlaneGeometry(FLAG_W, FLAG_H, 18, 6).translate(FLAG_W / 2, 0, 0);
+const flagRest = flagGeo.attributes.position.array.slice();
+{
+    const pole = mesh(new THREE.CylinderGeometry(0.7, 0.7, 78, 12).translate(0, 39, 0), zincMat);
+    pole.position.x = 40;
+    const flag = mesh(flagGeo, new THREE.MeshStandardMaterial({ map: flagTex, side: THREE.DoubleSide, roughness: 0.85, metalness: 0 }));
+    flag.position.set(40.7, 78 - FLAG_H / 2, 0);
+    const tree = new THREE.Group();
+    const needles = new THREE.MeshStandardMaterial({ color: 0x2f6b3a, roughness: 0.9, metalness: 0 });
+    [[13, 22, 8], [10, 18, 20], [6.5, 14, 30]].forEach(([r, h, y]) => tree.add(mesh(new THREE.ConeGeometry(r, h, 14).translate(0, y + h / 2, 0), needles)));
+    tree.add(mesh(new THREE.CylinderGeometry(1.4, 1.4, 9, 8).translate(0, 4.5, 0), new THREE.MeshStandardMaterial({ color: 0x5a4030, roughness: 0.9 })));
+    tree.position.x = -62;
+    topping.group.add(pole, flag, tree);
+}
+
+/* ---------- timeline ---------- */
+const OVERLAP = 6, LAST_START = 0.9, DROP = 560;
+{
+    const n = pieces.length - 1, step = LAST_START / (n - 1 + OVERLAP);
+    pieces.forEach((p, i) => {
+        if (i < n) { p.t0 = i * step; p.t1 = p.t0 + step * OVERLAP; }
+        else { p.t0 = LAST_START; p.t1 = 1; }
+    });
+}
+const totalLb = pieces.reduce((sum, p) => sum + p.lb, 0);
+const clamp01 = v => Math.min(1, Math.max(0, v));
+const easeOut = t => 1 - Math.pow(1 - t, 3);
+
+const countEl = document.getElementById('count'), tonsEl = document.getElementById('tons'), phaseEl = document.getElementById('phase');
+let hovered = null;
+function applyProgress(e) {
+    let set = 0, lb = 0, phase = 'Ready';
+    for (const p of pieces) {
+        const k = e >= 1 ? 1 : clamp01((e - p.t0) / (p.t1 - p.t0));
+        p.group.visible = k > 0;
+        if (k > 0) {
+            const s = easeOut(k);
+            p.group.position.y = p.y + (1 - s) * DROP;
+            p.group.rotation.y = p.yaw + (1 - s) * 0.16 * p.swing;
+            p.rig.visible = k < 1;
+            p.mat.emissiveIntensity = Math.max(p === topping ? 0 : (1 - k) * 0.5, p === hovered ? 0.3 : 0);
+            phase = p.phase;
+            if (k >= 1) { set++; lb += p.lb; }
+        }
+    }
+    countEl.textContent = set + ' / ' + pieces.length;
+    tonsEl.textContent = (lb / 2000).toFixed(1) + ' tons';
+    phaseEl.textContent = set === pieces.length ? 'Topped out' : phase;
+}
+
+/* ---------- controls ---------- */
+const playBtn = document.getElementById('play');
+const scrub = document.getElementById('scrub');
+const DURATION = 16;
+let progress = reduceMotion ? 1 : 0, playing = false;
+function label() { playBtn.textContent = playing ? 'Pause' : progress >= 1 ? 'Replay' : 'Play'; }
+function togglePlay() {
+    if (!playing && progress >= 1) progress = 0;
+    playing = !playing;
+    label();
+}
+playBtn.addEventListener('click', togglePlay);
+scrub.addEventListener('input', () => { playing = false; progress = scrub.value / 1000; label(); needsRender = true; });
+
+const raycaster = new THREE.Raycaster();
+const pointer = new THREE.Vector2();
+const tip = document.getElementById('tip');
+let down = null, hoverDirty = false, hoverXY = null;
+function pieceAt(clientX, clientY) {
+    const r = canvas.getBoundingClientRect();
+    pointer.set(((clientX - r.left) / r.width) * 2 - 1, -((clientY - r.top) / r.height) * 2 + 1);
+    raycaster.setFromCamera(pointer, camera);
+    for (const hit of raycaster.intersectObjects(frame.children, true)) {
+        let o = hit.object, shown = true;
+        for (let a = o; a; a = a.parent) if (!a.visible) shown = false;
+        while (o && !o.userData.piece) o = o.parent;
+        if (o && shown) return o.userData.piece;
+    }
+    return null;
+}
+function setHovered(piece) {
+    if (piece !== hovered) needsRender = true;
+    hovered = piece;
+    if (piece) {
+        const info = piece.group.userData.part;
+        tip.innerHTML = '<b>' + info.name + '</b><span>' + info.spec + '</span>';
+    }
+    tip.style.opacity = piece ? 1 : 0;
+}
+canvas.addEventListener('pointerdown', e => { down = { x: e.clientX, y: e.clientY }; setHovered(null); });
+canvas.addEventListener('pointerup', e => {
+    if (down && Math.hypot(e.clientX - down.x, e.clientY - down.y) < 6) togglePlay();
+    down = null;
+});
+canvas.addEventListener('pointermove', e => {
+    if (e.pointerType !== 'mouse' || e.buttons) return;
+    hoverXY = { x: e.clientX, y: e.clientY };
+    hoverDirty = true;
+});
+canvas.addEventListener('pointerleave', () => { hoverXY = null; setHovered(null); });
+
+/* ---------- sizing + framing ---------- */
+function resize() {
+    const w = stage.clientWidth, h = stage.clientHeight;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    needsRender = true;
+}
+new ResizeObserver(resize).observe(stage);
+resize();
+
+const focus = new THREE.Vector3(0, 130, 0), offset = new THREE.Vector3();
+function frameCamera() {
+    const tanV = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+    const distance = Math.max(330 / tanV, 560 / (tanV * camera.aspect)) + 420;
+    offset.copy(camera.position).sub(controls.target).setLength(distance);
+    controls.target.copy(focus);
+    camera.position.copy(focus).add(offset);
+}
+
+function waveFlag(time) {
+    const pos = flagGeo.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+        const x = flagRest[i * 3], y = flagRest[i * 3 + 1];
+        pos.setZ(i, Math.sin(x * 0.2 - time * 5 + y * 0.05) * 2.6 * (x / FLAG_W));
+    }
+    pos.needsUpdate = true;
+    flagGeo.computeVertexNormals();
+}
+
+/* ---------- loop ---------- */
+let visible = false, started = reduceMotion, last = performance.now();
+new IntersectionObserver(entries => {
+    visible = entries[0].isIntersecting;
+    if (visible && !started) { started = true; playing = true; label(); }
+}).observe(stage);
+label();
+
+function tick(now) {
+    requestAnimationFrame(tick);
+    const dt = (now - last) / 1000;
+    last = now;
+    if (!visible || document.hidden) return;
+
+    if (playing) {
+        progress = Math.min(1, progress + dt / DURATION);
+        if (progress >= 1) { playing = false; label(); }
+        needsRender = true;
+    }
+    frameCamera();
+    controls.update();
+
+    if (hoverDirty) {
+        hoverDirty = false;
+        if (hoverXY) {
+            setHovered(pieceAt(hoverXY.x, hoverXY.y));
+            const r = stage.getBoundingClientRect();
+            tip.style.transform = 'translate(' + (hoverXY.x - r.left + 14) + 'px,' + (hoverXY.y - r.top + 14) + 'px)';
+        }
+    }
+    const flagWaving = !reduceMotion && topping.group.visible;
+    if (!needsRender && !flagWaving) return;
+    needsRender = false;
+    scrub.value = Math.round(progress * 1000);
+    applyProgress(progress);
+    if (flagWaving) waveFlag(now / 1000);
+    renderer.render(scene, camera);
+}
+requestAnimationFrame(tick);
+</script>
+</body>
+</html>
