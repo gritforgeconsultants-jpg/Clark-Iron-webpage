@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Steel Connection — Exploded View</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: #0f1419;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+            color: #e2e8f0;
+            padding: 16px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 960px;
+            position: relative;
+        }
+
+        h1 {
+            font-size: clamp(1rem, 2.5vw, 1.25rem);
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #94a3b8;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .svg-wrapper {
+            width: 100%;
+            cursor: pointer;
+            position: relative;
+            border: 1px solid #1e293b;
+            border-radius: 6px;
+            overflow: hidden;
+            background: #0f1419;
+        }
+
+        .svg-wrapper svg {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        .hint {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.8rem;
+            color: #64748b;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        .hint.hidden { opacity: 0; }
+
+        .caption {
+            margin-top: 0.75rem;
+            font-size: 0.75rem;
+            color: #475569;
+            text-align: center;
+            letter-spacing: 0.04em;
+        }
+
+        /* SVG label styling */
+        .part-label {
+            font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+            font-size: 12px;
+            fill: #cbd5e1;
+            opacity: 0;
+        }
+        .part-label-bg {
+            fill: #0f1419;
+            opacity: 0;
+            rx: 3;
+        }
+        .leader-line {
+            stroke: #475569;
+            stroke-width: 1;
+            stroke-dasharray: 4 3;
+            opacity: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Bolted Moment Connection</h1>
+        <div class="svg-wrapper" id="connectionViewer">
+            <svg viewBox="0 0 1000 700" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <!-- Blueprint grid pattern -->
+                    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1a2332" stroke-width="0.5"/>
+                    </pattern>
+                    <pattern id="gridSmall" width="8" height="8" patternUnits="userSpaceOnUse">
+                        <path d="M 8 0 L 0 0 0 8" fill="none" stroke="#141d28" stroke-width="0.3"/>
+                    </pattern>
+                    <!-- Bolt head hex shape -->
+                    <polygon id="hexBolt" points="0,-8 6.9,-4 6.9,4 0,8 -6.9,4 -6.9,-4" fill="#374151" stroke="#2d3748" stroke-width="1.5"/>
+                    <!-- Steel hatch pattern -->
+                    <pattern id="steelHatch" width="6" height="6" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+                        <line x1="0" y1="0" x2="0" y2="6" stroke="#4a5568" stroke-width="0.4" opacity="0.3"/>
+                    </pattern>
+                </defs>
+
+                <!-- Background grid -->
+                <rect width="1000" height="700" fill="#0f1419"/>
+                <rect width="1000" height="700" fill="url(#gridSmall)"/>
+                <rect width="1000" height="700" fill="url(#grid)"/>
+
+                <!-- ============ COLUMN ============ -->
+                <g id="column">
+                    <!-- Column flange face -->
+                    <rect x="175" y="40" width="110" height="620" rx="1" fill="#5a6577"/>
+                    <rect x="175" y="40" width="110" height="620" rx="1" fill="url(#steelHatch)"/>
+                    <!-- Column 3D depth / right flange edge -->
+                    <polygon points="285,40 305,55 305,645 285,660" fill="#4a5568"/>
+                    <polygon points="285,40 305,55 305,645 285,660" fill="url(#steelHatch)" opacity="0.5"/>
+                    <!-- Column web hint (visible between flanges at depth) -->
+                    <rect x="285" y="55" width="20" height="590" fill="#3d4756" opacity="0.6"/>
+                    <!-- Top/bottom flange edges -->
+                    <line x1="175" y1="40" x2="285" y2="40" stroke="#6b7784" stroke-width="1"/>
+                    <line x1="175" y1="660" x2="285" y2="660" stroke="#4a5568" stroke-width="1"/>
+                    <line x1="285" y1="40" x2="305" y2="55" stroke="#6b7784" stroke-width="0.8"/>
+                    <line x1="285" y1="660" x2="305" y2="645" stroke="#4a5568" stroke-width="0.8"/>
+                </g>
+
+                <!-- ============ SHEAR TAB ============ -->
+                <g id="shear-tab">
+                    <rect x="285" y="305" width="95" height="90" rx="1" fill="#7a6a52"/>
+                    <rect x="285" y="305" width="95" height="90" rx="1" fill="url(#steelHatch)" opacity="0.4"/>
+                    <!-- Fillet weld symbols along column face -->
+                    <g class="welds">
+                        <path d="M285,308 L275,316 L285,324" stroke="#f59e0b" stroke-width="2" fill="none" opacity="0.8"/>
+                        <path d="M285,332 L275,340 L285,348" stroke="#f59e0b" stroke-width="2" fill="none" opacity="0.8"/>
+                        <path d="M285,356 L275,364 L285,372" stroke="#f59e0b" stroke-width="2" fill="none" opacity="0.8"/>
+                        <path d="M285,380 L275,388 L285,396" stroke="#f59e0b" stroke-width="2" fill="none" opacity="0.6"/>
+                    </g>
+                </g>
+
+                <!-- ============ TOP CONNECTION PLATE ============ -->
+                <g id="top-plate">
+                    <rect x="190" y="250" width="250" height="16" rx="1" fill="#8b7355"/>
+                    <rect x="190" y="250" width="250" height="16" rx="1" fill="url(#steelHatch)" opacity="0.3"/>
+                    <!-- Plate edge highlight -->
+                    <line x1="190" y1="250" x2="440" y2="250" stroke="#9d8463" stroke-width="0.8"/>
+                </g>
+
+                <!-- ============ BOTTOM CONNECTION PLATE ============ -->
+                <g id="bottom-plate">
+                    <rect x="190" y="434" width="250" height="16" rx="1" fill="#8b7355"/>
+                    <rect x="190" y="434" width="250" height="16" rx="1" fill="url(#steelHatch)" opacity="0.3"/>
+                    <line x1="190" y1="450" x2="440" y2="450" stroke="#6e5a3f" stroke-width="0.8"/>
+                </g>
+
+                <!-- ============ BEAM ============ -->
+                <g id="beam">
+                    <!-- Top flange -->
+                    <rect x="305" y="266" width="490" height="18" rx="1" fill="#6b7b8d"/>
+                    <!-- Bottom flange -->
+                    <rect x="305" y="416" width="490" height="18" rx="1" fill="#6b7b8d"/>
+                    <!-- Web -->
+                    <rect x="305" y="284" width="490" height="132" rx="1" fill="#5a6a7c" opacity="0.5"/>
+                    <!-- Web center line -->
+                    <line x1="305" y1="350" x2="795" y2="350" stroke="#6b7b8d" stroke-width="0.5" opacity="0.6"/>
+                    <!-- Flange edge highlights -->
+                    <line x1="305" y1="266" x2="795" y2="266" stroke="#7d8d9f" stroke-width="0.6"/>
+                    <line x1="305" y1="434" x2="795" y2="434" stroke="#4a5a6c" stroke-width="0.6"/>
+                    <!-- Beam end face (cut section) at right end -->
+                    <rect x="790" y="266" width="5" height="168" fill="#4a5a6c"/>
+                </g>
+
+                <!-- ============ BOLTS — TOP PLATE ============ -->
+                <g id="bolts-top">
+                    <!-- Column-side bolts (2 rows × 2) -->
+                    <use href="#hexBolt" x="218" y="258" class="bolt"/>
+                    <use href="#hexBolt" x="252" y="258" class="bolt"/>
+                    <!-- Beam-side bolts (2 rows × 3) -->
+                    <use href="#hexBolt" x="340" y="258" class="bolt"/>
+                    <use href="#hexBolt" x="375" y="258" class="bolt"/>
+                    <use href="#hexBolt" x="410" y="258" class="bolt"/>
+                </g>
+
+                <!-- ============ BOLTS — BOTTOM PLATE ============ -->
+                <g id="bolts-bottom">
+                    <!-- Column-side bolts -->
+                    <use href="#hexBolt" x="218" y="442" class="bolt"/>
+                    <use href="#hexBolt" x="252" y="442" class="bolt"/>
+                    <!-- Beam-side bolts -->
+                    <use href="#hexBolt" x="340" y="442" class="bolt"/>
+                    <use href="#hexBolt" x="375" y="442" class="bolt"/>
+                    <use href="#hexBolt" x="410" y="442" class="bolt"/>
+                </g>
+
+                <!-- ============ BOLTS — SHEAR TAB ============ -->
+                <g id="bolts-shear">
+                    <use href="#hexBolt" x="345" y="328" class="bolt"/>
+                    <use href="#hexBolt" x="345" y="350" class="bolt"/>
+                    <use href="#hexBolt" x="345" y="372" class="bolt"/>
+                </g>
+
+                <!-- ============ LABELS (hidden until exploded) ============ -->
+                <g id="labels">
+                    <!-- Column label -->
+                    <rect class="part-label-bg" x="170" y="6" width="120" height="22"/>
+                    <text class="part-label" x="180" y="22">W14×90 Column</text>
+                    <line class="leader-line" x1="230" y1="28" x2="230" y2="40"/>
+
+                    <!-- Beam label -->
+                    <rect class="part-label-bg" x="580" y="236" width="112" height="22"/>
+                    <text class="part-label" x="590" y="252">W21×62 Beam</text>
+                    <line class="leader-line" x1="636" y1="258" x2="636" y2="270"/>
+
+                    <!-- Top plate label -->
+                    <rect class="part-label-bg" x="310" y="206" width="166" height="22"/>
+                    <text class="part-label" x="320" y="222">Top Flange PL ½"×8"</text>
+                    <line class="leader-line" x1="395" y1="228" x2="395" y2="248"/>
+
+                    <!-- Bottom plate label -->
+                    <rect class="part-label-bg" x="310" y="480" width="186" height="22"/>
+                    <text class="part-label" x="320" y="496">Bottom Flange PL ½"×8"</text>
+                    <line class="leader-line" x1="400" y1="478" x2="400" y2="456"/>
+
+                    <!-- Shear tab label -->
+                    <rect class="part-label-bg" x="400" y="338" width="138" height="22"/>
+                    <text class="part-label" x="410" y="354">Shear Tab ⅜"×9"</text>
+                    <line class="leader-line" x1="398" y1="350" x2="382" y2="350"/>
+
+                    <!-- Bolts label -->
+                    <rect class="part-label-bg" x="445" y="250" width="126" height="22"/>
+                    <text class="part-label" x="455" y="266">A325 Bolts (typ.)</text>
+                    <line class="leader-line" x1="443" y1="261" x2="420" y2="258"/>
+
+                    <!-- Weld label -->
+                    <rect class="part-label-bg" x="152" y="338" width="112" height="22"/>
+                    <text class="part-label" x="162" y="354">Fillet Weld ¼"</text>
+                    <line class="leader-line" x1="264" y1="350" x2="275" y2="350"/>
+                </g>
+            </svg>
+            <div class="hint" id="hint">[ Click to Explore ]</div>
+        </div>
+        <p class="caption">Interactive bolted moment connection — click to deconstruct &amp; reassemble</p>
+    </div>
+
+    <script src="../lib/gsap.min.js"></script>
+    <script>
+    (function() {
+        const viewer = document.getElementById('connectionViewer');
+        const hint = document.getElementById('hint');
+        let exploded = false;
+        let firstClick = true;
+
+        const ease = 'power2.inOut';
+
+        const tl = gsap.timeline({ paused: true });
+
+        // Phase 1: Bolts unscrew (rotate + pull outward)
+        tl.to('#bolts-top .bolt, #bolts-bottom .bolt, #bolts-shear .bolt', {
+            rotation: 120,
+            scale: 1.15,
+            transformOrigin: '50% 50%',
+            duration: 0.35,
+            stagger: { each: 0.03, from: 'random' },
+            ease: ease
+        }, 0);
+
+        // Phase 1b: Bolts translate outward
+        tl.to('#bolts-top', {
+            y: -50,
+            x: 25,
+            duration: 0.5,
+            ease: ease
+        }, 0.15);
+        tl.to('#bolts-bottom', {
+            y: 50,
+            x: 25,
+            duration: 0.5,
+            ease: ease
+        }, 0.15);
+        tl.to('#bolts-shear', {
+            x: 70,
+            duration: 0.5,
+            ease: ease
+        }, 0.18);
+
+        // Phase 2: Top and bottom plates separate
+        tl.to('#top-plate', {
+            y: -55,
+            x: 50,
+            duration: 0.6,
+            ease: ease
+        }, 0.3);
+        tl.to('#bottom-plate', {
+            y: 55,
+            x: 50,
+            duration: 0.6,
+            ease: ease
+        }, 0.3);
+
+        // Phase 3: Beam slides right
+        tl.to('#beam', {
+            x: 140,
+            duration: 0.7,
+            ease: ease
+        }, 0.4);
+
+        // Phase 4: Shear tab separates from column
+        tl.to('#shear-tab', {
+            x: 85,
+            duration: 0.55,
+            ease: ease
+        }, 0.5);
+
+        // Phase 5: Labels and leader lines fade in
+        tl.to('.part-label', {
+            opacity: 1,
+            duration: 0.4,
+            stagger: 0.04,
+            ease: 'power1.out'
+        }, 0.7);
+        tl.to('.part-label-bg', {
+            opacity: 0.85,
+            duration: 0.4,
+            stagger: 0.04,
+            ease: 'power1.out'
+        }, 0.7);
+        tl.to('.leader-line', {
+            opacity: 0.6,
+            duration: 0.35,
+            stagger: 0.04,
+            ease: 'power1.out'
+        }, 0.75);
+
+        viewer.addEventListener('click', function() {
+            if (firstClick) {
+                hint.classList.add('hidden');
+                firstClick = false;
+            }
+
+            if (exploded) {
+                tl.reverse();
+            } else {
+                tl.play();
+            }
+            exploded = !exploded;
+        });
+
+        // Subtle hover effect — slight scale on SVG
+        viewer.addEventListener('mouseenter', function() {
+            if (!exploded) {
+                gsap.to(viewer.querySelector('svg'), {
+                    scale: 1.01,
+                    duration: 0.4,
+                    ease: 'power1.out'
+                });
+            }
+        });
+        viewer.addEventListener('mouseleave', function() {
+            gsap.to(viewer.querySelector('svg'), {
+                scale: 1,
+                duration: 0.4,
+                ease: 'power1.out'
+            });
+        });
+    })();
+    </script>
+</body>
+</html>

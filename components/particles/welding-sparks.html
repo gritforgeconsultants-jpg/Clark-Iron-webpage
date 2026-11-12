@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welding Sparks — Particle Effect</title>
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #0f1419;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            font-family: system-ui, -apple-system, sans-serif;
+            cursor: crosshair;
+        }
+
+        .steel-bg {
+            position: fixed;
+            inset: 0;
+            background:
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 40px,
+                    rgba(255,255,255,0.012) 40px,
+                    rgba(255,255,255,0.012) 41px
+                ),
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 40px,
+                    rgba(255,255,255,0.012) 40px,
+                    rgba(255,255,255,0.012) 41px
+                ),
+                radial-gradient(ellipse at 30% 40%, #1a1f27 0%, #0f1419 70%);
+            z-index: 0;
+        }
+
+        #weldCanvas {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            display: block;
+        }
+
+        .hint {
+            position: fixed;
+            bottom: 48px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(251, 191, 36, 0.7);
+            font-size: 15px;
+            letter-spacing: 0.06em;
+            z-index: 2;
+            pointer-events: none;
+            transition: opacity 1.2s ease;
+            text-align: center;
+            padding: 0 16px;
+        }
+        .hint.hidden { opacity: 0; }
+
+        .back-link {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            color: rgba(255,255,255,0.4);
+            text-decoration: none;
+            font-size: 14px;
+            z-index: 3;
+            padding: 6px 12px;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 6px;
+            transition: color 0.2s, border-color 0.2s;
+        }
+        .back-link:hover { color: #fbbf24; border-color: #fbbf24; }
+    </style>
+</head>
+<body>
+    <div class="steel-bg"></div>
+    <canvas id="weldCanvas"></canvas>
+    <div class="hint" id="hint">Move cursor to weld</div>
+    <a href="../index.html" class="back-link">&larr; Components</a>
+
+    <script>
+    (function() {
+        const canvas = document.getElementById('weldCanvas');
+        const ctx = canvas.getContext('2d');
+        const hint = document.getElementById('hint');
+
+        let W, H;
+        function resize() {
+            W = canvas.width = window.innerWidth;
+            H = canvas.height = window.innerHeight;
+        }
+        resize();
+        window.addEventListener('resize', resize);
+
+        const MAX_SPARKS = 500;
+        const MAX_EMBERS = 120;
+        const MAX_DRIPS = 15;
+        const MAX_SEAM = 200;
+
+        let mouseX = W / 2, mouseY = H / 2;
+        let prevMouseX = mouseX, prevMouseY = mouseY;
+        let mouseSpeed = 0;
+        let mouseActive = false;
+        let hintDismissed = false;
+
+        // --- Particle pools ---
+        const sparks = [];
+        const embers = [];
+        const drips = [];
+        const seamPoints = [];
+
+        for (let i = 0; i < MAX_SPARKS; i++) sparks.push({ alive: false });
+        for (let i = 0; i < MAX_EMBERS; i++) embers.push({ alive: false });
+        for (let i = 0; i < MAX_DRIPS; i++) drips.push({ alive: false });
+
+        function getDeadSpark() {
+            for (let i = 0; i < sparks.length; i++) if (!sparks[i].alive) return sparks[i];
+            return null;
+        }
+        function getDeadEmber() {
+            for (let i = 0; i < embers.length; i++) if (!embers[i].alive) return embers[i];
+            return null;
+        }
+        function getDeadDrip() {
+            for (let i = 0; i < drips.length; i++) if (!drips[i].alive) return drips[i];
+            return null;
+        }
+
+        function spawnSpark(x, y, speed) {
+            const p = getDeadSpark();
+            if (!p) return;
+            p.alive = true;
+            p.x = x + (Math.random() - 0.5) * 4;
+            p.y = y + (Math.random() - 0.5) * 4;
+
+            const angle = Math.PI * 0.5 + (Math.random() - 0.5) * 1.8;
+            const vel = 1.5 + Math.random() * 4 + speed * 0.5;
+            p.vx = Math.cos(angle) * vel + (Math.random() - 0.5) * 2;
+            p.vy = Math.sin(angle) * vel * 0.8 + Math.random() * 1.5;
+
+            p.life = 0;
+            p.maxLife = 0.5 + Math.random() * 1.0;
+            p.size = 2 + Math.random() * 2.5;
+            p.bounce = Math.random() < 0.3;
+            p.prevX = p.x;
+            p.prevY = p.y;
+        }
+
+        function spawnEmber(x, y) {
+            const e = getDeadEmber();
+            if (!e) return;
+            e.alive = true;
+            e.x = x + (Math.random() - 0.5) * 6;
+            e.y = y + (Math.random() - 0.5) * 6;
+            e.vx = (Math.random() - 0.5) * 0.3;
+            e.vy = Math.random() * 0.2;
+            e.life = 0;
+            e.maxLife = 1.5 + Math.random() * 2.5;
+            e.size = 1 + Math.random() * 2;
+        }
+
+        function spawnDrip(x, y) {
+            const d = getDeadDrip();
+            if (!d) return;
+            d.alive = true;
+            d.x = x + (Math.random() - 0.5) * 3;
+            d.y = y;
+            d.vx = (Math.random() - 0.5) * 0.3;
+            d.vy = 0.5;
+            d.life = 0;
+            d.maxLife = 2.0 + Math.random() * 1.5;
+            d.size = 3 + Math.random() * 2;
+        }
+
+        function addSeamPoint(x, y) {
+            seamPoints.push({ x, y, life: 0, maxLife: 3.0 + Math.random() * 1.5 });
+            if (seamPoints.length > MAX_SEAM) seamPoints.shift();
+        }
+
+        // --- Color helpers ---
+        function sparkColor(t) {
+            if (t < 0.15) return { r: 255, g: 255, b: 240, a: 1.0 };
+            if (t < 0.35) return { r: 254, g: 240, b: 138, a: 0.95 };
+            if (t < 0.6) return { r: 251, g: 191, b: 36, a: 0.85 };
+            if (t < 0.8) return { r: 249, g: 115, b: 22, a: 0.7 };
+            return { r: 239, g: 68, b: 68, a: 0.5 * (1 - t) / 0.2 };
+        }
+
+        // --- Input handling ---
+        function onPointerMove(x, y) {
+            prevMouseX = mouseX;
+            prevMouseY = mouseY;
+            mouseX = x;
+            mouseY = y;
+            mouseActive = true;
+            if (!hintDismissed) {
+                hintDismissed = true;
+                hint.classList.add('hidden');
+            }
+        }
+
+        canvas.addEventListener('mousemove', function(e) {
+            onPointerMove(e.clientX, e.clientY);
+        });
+        canvas.addEventListener('touchmove', function(e) {
+            e.preventDefault();
+            const t = e.touches[0];
+            onPointerMove(t.clientX, t.clientY);
+        }, { passive: false });
+        canvas.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            const t = e.touches[0];
+            onPointerMove(t.clientX, t.clientY);
+        }, { passive: false });
+
+        // --- Update & Draw ---
+        let lastTime = 0;
+        let spawnAcc = 0;
+        let dripAcc = 0;
+
+        function update(dt) {
+            const dx = mouseX - prevMouseX;
+            const dy = mouseY - prevMouseY;
+            mouseSpeed = Math.sqrt(dx * dx + dy * dy) / Math.max(dt, 0.001);
+            mouseSpeed = Math.min(mouseSpeed, 2000);
+
+            if (mouseActive) {
+                const rate = 8 + mouseSpeed * 0.15;
+                spawnAcc += rate * dt;
+                while (spawnAcc >= 1) {
+                    spawnSpark(mouseX, mouseY, mouseSpeed * 0.005);
+                    spawnAcc -= 1;
+                }
+
+                if (Math.random() < dt * (2 + mouseSpeed * 0.01)) {
+                    spawnEmber(mouseX, mouseY);
+                }
+
+                dripAcc += dt;
+                const dripInterval = mouseSpeed > 200 ? 0.15 : 0.5;
+                if (dripAcc > dripInterval) {
+                    spawnDrip(mouseX, mouseY);
+                    dripAcc = 0;
+                }
+
+                if (mouseSpeed > 5) {
+                    addSeamPoint(mouseX, mouseY);
+                }
+            }
+
+            const gravity = 280;
+
+            for (let i = 0; i < sparks.length; i++) {
+                const p = sparks[i];
+                if (!p.alive) continue;
+                p.life += dt;
+                if (p.life >= p.maxLife) { p.alive = false; continue; }
+
+                p.prevX = p.x;
+                p.prevY = p.y;
+                p.vy += gravity * dt;
+                p.vx *= 0.995;
+                p.x += p.vx * dt * 60;
+                p.y += p.vy * dt * 60;
+
+                if (p.bounce && p.y > H - 5) {
+                    p.y = H - 5;
+                    p.vy *= -0.3 - Math.random() * 0.2;
+                    p.vx *= 0.7;
+                    if (Math.abs(p.vy) < 0.5) p.bounce = false;
+                }
+            }
+
+            for (let i = 0; i < embers.length; i++) {
+                const e = embers[i];
+                if (!e.alive) continue;
+                e.life += dt;
+                if (e.life >= e.maxLife) { e.alive = false; continue; }
+                e.x += e.vx * dt * 60;
+                e.y += e.vy * dt * 60;
+                e.vy += 5 * dt;
+            }
+
+            for (let i = 0; i < drips.length; i++) {
+                const d = drips[i];
+                if (!d.alive) continue;
+                d.life += dt;
+                if (d.life >= d.maxLife || d.y > H + 10) { d.alive = false; continue; }
+                d.vy += gravity * 0.6 * dt;
+                d.x += d.vx * dt * 60;
+                d.y += d.vy * dt * 60;
+            }
+
+            for (let i = seamPoints.length - 1; i >= 0; i--) {
+                seamPoints[i].life += dt;
+                if (seamPoints[i].life >= seamPoints[i].maxLife) {
+                    seamPoints.splice(i, 1);
+                }
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, W, H);
+
+            // Weld seam trail
+            for (let i = 1; i < seamPoints.length; i++) {
+                const s = seamPoints[i];
+                const sp = seamPoints[i - 1];
+                const t = s.life / s.maxLife;
+                const alpha = (1 - t) * 0.25;
+                if (alpha < 0.005) continue;
+                const width = (1 - t) * 8 + 2;
+
+                ctx.beginPath();
+                ctx.moveTo(sp.x, sp.y);
+                ctx.lineTo(s.x, s.y);
+                ctx.strokeStyle = `rgba(251,191,36,${alpha})`;
+                ctx.lineWidth = width;
+                ctx.lineCap = 'round';
+                ctx.stroke();
+
+                if (alpha > 0.08) {
+                    ctx.beginPath();
+                    ctx.moveTo(sp.x, sp.y);
+                    ctx.lineTo(s.x, s.y);
+                    ctx.strokeStyle = `rgba(254,240,138,${alpha * 0.4})`;
+                    ctx.lineWidth = width * 2.5;
+                    ctx.stroke();
+                }
+            }
+
+            // Embers (drawn first, underneath)
+            for (let i = 0; i < embers.length; i++) {
+                const e = embers[i];
+                if (!e.alive) continue;
+                const t = e.life / e.maxLife;
+                const alpha = (1 - t) * 0.35;
+                const sz = e.size * (1 - t * 0.5);
+                ctx.beginPath();
+                ctx.arc(e.x, e.y, sz, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(146,64,14,${alpha})`;
+                ctx.fill();
+            }
+
+            // Sparks with additive blending
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+
+            for (let i = 0; i < sparks.length; i++) {
+                const p = sparks[i];
+                if (!p.alive) continue;
+                const t = p.life / p.maxLife;
+                const c = sparkColor(t);
+                const sz = p.size * (1 - t * 0.6);
+
+                // Motion trail
+                const tdx = p.x - p.prevX;
+                const tdy = p.y - p.prevY;
+                const trailLen = Math.sqrt(tdx * tdx + tdy * tdy);
+                if (trailLen > 1) {
+                    ctx.beginPath();
+                    ctx.moveTo(p.prevX, p.prevY);
+                    ctx.lineTo(p.x, p.y);
+                    ctx.strokeStyle = `rgba(${c.r},${c.g},${c.b},${c.a * 0.4})`;
+                    ctx.lineWidth = sz * 0.6;
+                    ctx.lineCap = 'round';
+                    ctx.stroke();
+                }
+
+                // Spark body
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, sz, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${c.r},${c.g},${c.b},${c.a})`;
+                ctx.fill();
+
+                // Glow halo on hot sparks
+                if (t < 0.3) {
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, sz * 3, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(${c.r},${c.g},${c.b},${c.a * 0.12})`;
+                    ctx.fill();
+                }
+            }
+
+            // Drips
+            for (let i = 0; i < drips.length; i++) {
+                const d = drips[i];
+                if (!d.alive) continue;
+                const t = d.life / d.maxLife;
+                const alpha = (1 - t) * 0.9;
+                const sz = d.size * (1 - t * 0.3);
+
+                // Drip trail
+                ctx.beginPath();
+                ctx.arc(d.x, d.y, sz, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(251,191,36,${alpha})`;
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.arc(d.x, d.y, sz * 0.5, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255,255,240,${alpha * 0.7})`;
+                ctx.fill();
+
+                // Drip glow
+                ctx.beginPath();
+                ctx.arc(d.x, d.y, sz * 4, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(249,115,22,${alpha * 0.1})`;
+                ctx.fill();
+            }
+
+            // Cursor core glow
+            if (mouseActive) {
+                const coreAlpha = 0.4 + Math.min(mouseSpeed * 0.0005, 0.5);
+
+                ctx.beginPath();
+                ctx.arc(mouseX, mouseY, 30, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(254,240,138,${coreAlpha * 0.15})`;
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.arc(mouseX, mouseY, 12, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255,255,240,${coreAlpha * 0.4})`;
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.arc(mouseX, mouseY, 4, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255,255,255,${coreAlpha})`;
+                ctx.fill();
+            }
+
+            ctx.restore();
+        }
+
+        function loop(time) {
+            const dt = Math.min((time - lastTime) / 1000, 0.05);
+            lastTime = time;
+            update(dt);
+            draw();
+            requestAnimationFrame(loop);
+        }
+
+        requestAnimationFrame(function(time) {
+            lastTime = time;
+            requestAnimationFrame(loop);
+        });
+    })();
+    </script>
+</body>
+</html>

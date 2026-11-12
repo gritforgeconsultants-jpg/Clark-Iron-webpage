@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Component Library — Clark Iron Interactive Effects</title>
+    <style>
+        :root {
+            --bg: #0f1419;
+            --surface: #1a1f2e;
+            --surface-hover: #222838;
+            --text: #e2e8f0;
+            --text-muted: #64748b;
+            --accent: #f59e0b;
+            --accent-dim: rgba(245, 158, 11, 0.1);
+            --border: rgba(100, 116, 139, 0.15);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            padding: 16px;
+            min-height: 100vh;
+        }
+
+        .header {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 3rem 0 1rem;
+            text-align: center;
+        }
+
+        .header .badge {
+            display: inline-block;
+            background: var(--accent-dim);
+            color: var(--accent);
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            padding: 5px 14px;
+            border-radius: 20px;
+            border: 1px solid rgba(245, 158, 11, 0.2);
+            margin-bottom: 1rem;
+        }
+
+        .header h1 {
+            font-size: clamp(2rem, 5vw, 3.2rem);
+            font-weight: 800;
+            line-height: 1.15;
+            margin-bottom: 0.75rem;
+        }
+
+        .header h1 span {
+            background: linear-gradient(135deg, var(--accent) 0%, #fbbf24 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .grid {
+            max-width: 1100px;
+            margin: 3rem auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+            border-color: rgba(245, 158, 11, 0.25);
+        }
+
+        .card-preview {
+            height: 200px;
+            background: #141922;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .card-preview svg {
+            width: 80%;
+            height: 80%;
+        }
+
+        .card-preview .preview-label {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(15, 20, 25, 0.7);
+            color: var(--text-muted);
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 3px 8px;
+            border-radius: 4px;
+        }
+
+        .card-body {
+            padding: 20px 24px;
+        }
+
+        .card-body h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .card-body p {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        .card-tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            background: rgba(100, 116, 139, 0.1);
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            padding: 3px 10px;
+            border-radius: 20px;
+            border: 1px solid rgba(100, 116, 139, 0.1);
+        }
+
+        .tag.accent {
+            background: var(--accent-dim);
+            color: var(--accent);
+            border-color: rgba(245, 158, 11, 0.15);
+        }
+
+        .footer {
+            max-width: 1100px;
+            margin: 2rem auto 3rem;
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .footer p {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <span class="badge">Interactive Component Library</span>
+    <h1>Effects That Make<br><span>Steel Stand Out</span></h1>
+    <p>Premium interactive components built for construction and industrial websites. Each one is standalone — drop it into any page.</p>
+</div>
+
+<div class="grid">
+
+    <a class="card" href="exploded-view/steel-connection.html">
+        <div class="card-preview">
+            <span class="preview-label">Flagship</span>
+            <svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+                <rect x="60" y="20" width="40" height="160" fill="#5a6577" rx="2"/>
+                <rect x="100" y="70" width="140" height="8" fill="#6b7b8d"/>
+                <rect x="100" y="122" width="140" height="8" fill="#6b7b8d"/>
+                <rect x="100" y="78" width="140" height="44" fill="#5a6a7c" opacity="0.4"/>
+                <rect x="68" y="62" width="90" height="7" fill="#8b7355"/>
+                <rect x="68" y="130" width="90" height="7" fill="#8b7355"/>
+                <circle cx="88" cy="66" r="3" fill="#374151"/>
+                <circle cx="108" cy="66" r="3" fill="#374151"/>
+                <circle cx="130" cy="66" r="3" fill="#374151"/>
+                <circle cx="88" cy="134" r="3" fill="#374151"/>
+                <circle cx="108" cy="134" r="3" fill="#374151"/>
+                <circle cx="130" cy="134" r="3" fill="#374151"/>
+                <!-- Exploded hint arrows -->
+                <line x1="165" y1="66" x2="190" y2="45" stroke="#f59e0b" stroke-width="1" stroke-dasharray="3,3" opacity="0.6"/>
+                <line x1="165" y1="134" x2="190" y2="155" stroke="#f59e0b" stroke-width="1" stroke-dasharray="3,3" opacity="0.6"/>
+                <line x1="240" y1="100" x2="265" y2="100" stroke="#f59e0b" stroke-width="1" stroke-dasharray="3,3" opacity="0.6"/>
+            </svg>
+        </div>
+        <div class="card-body">
+            <h3>Steel Connection — Exploded View</h3>
+            <p>Interactive bolted moment connection that deconstructs piece by piece on click. Bolts, plates, shear tabs — all labeled.</p>
+            <div class="card-tags">
+                <span class="tag accent">SVG</span>
+                <span class="tag accent">GSAP</span>
+                <span class="tag">Click Interaction</span>
+            </div>
+        </div>
+    </a>
+
+    <a class="card" href="scroll-assembly/beam-assembly.html">
+        <div class="card-preview">
+            <svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+                <rect x="50" y="160" width="200" height="10" fill="#78716c" rx="1"/>
+                <rect x="70" y="60" width="8" height="100" fill="#6b7280"/>
+                <rect x="150" y="60" width="8" height="100" fill="#6b7280"/>
+                <rect x="230" y="60" width="8" height="100" fill="#6b7280"/>
+                <rect x="66" y="58" width="176" height="6" fill="#9ca3af"/>
+                <rect x="66" y="108" width="176" height="5" fill="#9ca3af"/>
+                <line x1="78" y1="64" x2="150" y2="108" stroke="#f59e0b" stroke-width="1.5" opacity="0.5"/>
+                <line x1="150" y1="64" x2="78" y2="108" stroke="#f59e0b" stroke-width="1.5" opacity="0.5"/>
+                <!-- Scroll indicator -->
+                <rect x="270" y="30" width="4" height="140" rx="2" fill="#1a1f2e" stroke="#374151" stroke-width="0.5"/>
+                <rect x="270" y="30" width="4" height="50" rx="2" fill="#f59e0b" opacity="0.6"/>
+            </svg>
+        </div>
+        <div class="card-body">
+            <h3>Steel Frame — Scroll Assembly</h3>
+            <p>A building frame constructs itself as you scroll. Foundation, columns, beams, bracing — all in sequence.</p>
+            <div class="card-tags">
+                <span class="tag accent">ScrollTrigger</span>
+                <span class="tag accent">GSAP</span>
+                <span class="tag">Scroll</span>
+            </div>
+        </div>
+    </a>
+
+    <a class="card" href="before-after/reveal-slider.html">
+        <div class="card-preview">
+            <svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+                <!-- Before side -->
+                <rect width="150" height="200" fill="#94a3b8"/>
+                <rect x="20" y="60" width="8" height="100" fill="#6b7280"/>
+                <rect x="60" y="60" width="8" height="100" fill="#6b7280"/>
+                <rect x="100" y="60" width="8" height="100" fill="#6b7280"/>
+                <rect x="16" y="58" width="96" height="5" fill="#9ca3af"/>
+                <!-- After side -->
+                <rect x="150" width="150" height="200" fill="#3b82f6"/>
+                <rect x="160" y="50" width="120" height="110" fill="#e2e8f0" rx="2"/>
+                <rect x="168" y="58" width="30" height="35" fill="#93c5fd" rx="1"/>
+                <rect x="205" y="58" width="30" height="35" fill="#93c5fd" rx="1"/>
+                <rect x="242" y="58" width="30" height="35" fill="#93c5fd" rx="1"/>
+                <!-- Divider -->
+                <line x1="150" y1="0" x2="150" y2="200" stroke="#f59e0b" stroke-width="3"/>
+                <circle cx="150" cy="100" r="14" fill="#f59e0b"/>
+                <line x1="141" y1="100" x2="145" y2="96" stroke="#0f1419" stroke-width="2" stroke-linecap="round"/>
+                <line x1="141" y1="100" x2="145" y2="104" stroke="#0f1419" stroke-width="2" stroke-linecap="round"/>
+                <line x1="159" y1="100" x2="155" y2="96" stroke="#0f1419" stroke-width="2" stroke-linecap="round"/>
+                <line x1="159" y1="100" x2="155" y2="104" stroke="#0f1419" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+        </div>
+        <div class="card-body">
+            <h3>Before &amp; After — Reveal Slider</h3>
+            <p>Drag-to-compare slider with three variants: steel frame, connection detail, and full job site transformation.</p>
+            <div class="card-tags">
+                <span class="tag accent">Vanilla JS</span>
+                <span class="tag">Drag</span>
+                <span class="tag">Touch</span>
+            </div>
+        </div>
+    </a>
+
+    <a class="card" href="counters/stat-counters.html">
+        <div class="card-preview">
+            <svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+                <text x="150" y="80" text-anchor="middle" fill="#e2e8f0" font-size="48" font-weight="800" font-family="system-ui">12,847</text>
+                <text x="150" y="105" text-anchor="middle" fill="#64748b" font-size="14" font-family="system-ui" text-transform="uppercase" letter-spacing="2">TONS ERECTED</text>
+                <!-- Ring gauge -->
+                <circle cx="80" cy="155" r="25" fill="none" stroke="#1a1f2e" stroke-width="5"/>
+                <circle cx="80" cy="155" r="25" fill="none" stroke="#f59e0b" stroke-width="5" stroke-dasharray="120 157" stroke-linecap="round" transform="rotate(-90, 80, 155)"/>
+                <text x="80" y="160" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="700" font-family="system-ui">96%</text>
+                <!-- Bar -->
+                <rect x="130" y="145" width="140" height="6" rx="3" fill="#1a1f2e"/>
+                <rect x="130" y="145" width="100" height="6" rx="3" fill="#f59e0b"/>
+                <text x="130" y="170" fill="#64748b" font-size="10" font-family="system-ui">SAFETY RATING</text>
+            </svg>
+        </div>
+        <div class="card-body">
+            <h3>Animated Stat Counters</h3>
+            <p>Three counter styles: card counters with progress bars, ring gauges, and a mechanical ticker. All scroll-triggered.</p>
+            <div class="card-tags">
+                <span class="tag accent">Vanilla JS</span>
+                <span class="tag">IntersectionObserver</span>
+                <span class="tag">Scroll</span>
+            </div>
+        </div>
+    </a>
+
+    <a class="card" href="particles/welding-sparks.html">
+        <div class="card-preview">
+            <svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+                <!-- Weld point glow -->
+                <circle cx="150" cy="100" r="6" fill="#fff" opacity="0.9"/>
+                <circle cx="150" cy="100" r="15" fill="#fef08a" opacity="0.3"/>
+                <circle cx="150" cy="100" r="30" fill="#f59e0b" opacity="0.1"/>
+                <!-- Sparks -->
+                <circle cx="170" cy="120" r="2" fill="#fbbf24"/>
+                <circle cx="130" cy="130" r="1.5" fill="#f97316"/>
+                <circle cx="175" cy="140" r="1.5" fill="#ef4444"/>
+                <circle cx="160" cy="150" r="2" fill="#fbbf24"/>
+                <circle cx="140" cy="145" r="1" fill="#f97316"/>
+                <circle cx="180" cy="115" r="1.5" fill="#fef08a"/>
+                <circle cx="125" cy="110" r="2" fill="#fbbf24"/>
+                <circle cx="165" cy="160" r="1" fill="#ef4444"/>
+                <circle cx="145" cy="155" r="1.5" fill="#f97316"/>
+                <circle cx="155" cy="170" r="2" fill="#fbbf24" opacity="0.6"/>
+                <!-- Weld line -->
+                <line x1="100" y1="100" x2="150" y2="100" stroke="#fbbf24" stroke-width="3" opacity="0.3" stroke-linecap="round"/>
+            </svg>
+        </div>
+        <div class="card-body">
+            <h3>Welding Sparks — Particle Effect</h3>
+            <p>Canvas-based welding simulation. Sparks follow cursor with physics — gravity, bounce, cooling color transition.</p>
+            <div class="card-tags">
+                <span class="tag accent">Canvas</span>
+                <span class="tag">Particles</span>
+                <span class="tag">Physics</span>
+            </div>
+        </div>
+    </a>
+
+    <a class="card" href="cursor-effects/magnetic.html">
+        <div class="card-preview">
+            <svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+                <!-- Cursor -->
+                <path d="M150,90 L150,75 L158,83 Z" fill="#e2e8f0" opacity="0.8"/>
+                <!-- Magnetic field lines -->
+                <circle cx="150" cy="100" r="30" fill="none" stroke="#f59e0b" stroke-width="0.5" stroke-dasharray="4,4" opacity="0.3"/>
+                <circle cx="150" cy="100" r="50" fill="none" stroke="#f59e0b" stroke-width="0.5" stroke-dasharray="4,4" opacity="0.2"/>
+                <circle cx="150" cy="100" r="70" fill="none" stroke="#f59e0b" stroke-width="0.5" stroke-dasharray="4,4" opacity="0.1"/>
+                <!-- Button being pulled -->
+                <rect x="115" y="115" width="80" height="32" rx="6" fill="none" stroke="#f59e0b" stroke-width="2" transform="translate(4, -3)"/>
+                <text x="159" y="135" text-anchor="middle" fill="#f59e0b" font-size="11" font-weight="600" font-family="system-ui" transform="translate(4, -3)">GET QUOTE</text>
+                <!-- Cards -->
+                <rect x="40" y="50" width="50" height="60" rx="4" fill="#1a1f2e" stroke="#374151" stroke-width="0.5" transform="rotate(-3, 65, 80)"/>
+                <rect x="210" y="50" width="50" height="60" rx="4" fill="#1a1f2e" stroke="#374151" stroke-width="0.5" transform="rotate(3, 235, 80)"/>
+            </svg>
+        </div>
+        <div class="card-body">
+            <h3>Magnetic Cursor Effects</h3>
+            <p>Four effects: magnetic buttons, 3D tilt cards with shine, perspective image tilt, and repel text. All mouse-reactive.</p>
+            <div class="card-tags">
+                <span class="tag accent">Vanilla JS</span>
+                <span class="tag">Hover</span>
+                <span class="tag">3D Transform</span>
+            </div>
+        </div>
+    </a>
+
+</div>
+
+<div class="footer">
+    <p>Clark Iron Interactive Component Library &mdash; Each component is a standalone HTML file.<br>
+    Drop any of them into your site, or use them as reference for custom builds.</p>
+</div>
+
+</body>
+</html>

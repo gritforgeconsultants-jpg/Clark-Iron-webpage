@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Before/After — Reveal Slider</title>
+    <style>
+        :root {
+            --bg: #0f1419;
+            --surface: #1a1f2e;
+            --text: #e2e8f0;
+            --text-muted: #64748b;
+            --accent: #f59e0b;
+            --steel: #6b7280;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        h1 {
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .reveal-container {
+            position: relative;
+            width: 100%;
+            max-width: 900px;
+            aspect-ratio: 16 / 10;
+            overflow: hidden;
+            border-radius: 8px;
+            cursor: col-resize;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .reveal-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .reveal-before {
+            z-index: 1;
+        }
+
+        .reveal-after {
+            z-index: 2;
+            clip-path: inset(0 50% 0 0);
+        }
+
+        .reveal-before svg,
+        .reveal-after svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .slider-line {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 3px;
+            height: 100%;
+            background: var(--accent);
+            z-index: 10;
+            transform: translateX(-50%);
+            pointer-events: none;
+        }
+
+        .slider-handle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 48px;
+            height: 48px;
+            background: var(--accent);
+            border-radius: 50%;
+            z-index: 11;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
+        }
+
+        .slider-handle svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .label {
+            position: absolute;
+            top: 16px;
+            padding: 6px 14px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .label-before {
+            right: 16px;
+            background: rgba(15, 20, 25, 0.8);
+            color: var(--text-muted);
+            border: 1px solid rgba(100, 116, 139, 0.3);
+        }
+
+        .label-after {
+            left: 16px;
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--accent);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .instruction {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-top: 1rem;
+            text-align: center;
+            transition: opacity 0.5s;
+        }
+
+        .variants {
+            display: flex;
+            gap: 12px;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .variant-btn {
+            background: var(--surface);
+            color: var(--text-muted);
+            border: 1px solid rgba(100, 116, 139, 0.2);
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .variant-btn:hover,
+        .variant-btn.active {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--accent);
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <h1>Before &amp; After</h1>
+    <p class="subtitle">Drag to reveal the transformation</p>
+
+    <div class="reveal-container" id="revealContainer">
+        <div class="reveal-layer reveal-before" id="layerBefore"></div>
+        <div class="reveal-layer reveal-after" id="layerAfter"></div>
+        <div class="slider-line" id="sliderLine"></div>
+        <div class="slider-handle" id="sliderHandle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#0f1419" stroke-width="2.5" stroke-linecap="round">
+                <polyline points="8,4 4,12 8,20"></polyline>
+                <polyline points="16,4 20,12 16,20"></polyline>
+            </svg>
+        </div>
+        <span class="label label-after">After</span>
+        <span class="label label-before">Before</span>
+    </div>
+
+    <p class="instruction" id="instruction">Drag the slider left and right</p>
+
+    <div class="variants">
+        <button class="variant-btn active" data-variant="steel-frame">Steel Frame</button>
+        <button class="variant-btn" data-variant="connection">Connection Detail</button>
+        <button class="variant-btn" data-variant="site">Job Site</button>
+    </div>
+
+    <script>
+    const scenes = {
+        'steel-frame': {
+            before: function() {
+                return `<svg viewBox="0 0 900 560" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="sky-b" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#cbd5e1"/>
+                            <stop offset="100%" stop-color="#94a3b8"/>
+                        </linearGradient>
+                    </defs>
+                    <rect width="900" height="560" fill="url(#sky-b)"/>
+                    <rect x="0" y="420" width="900" height="140" fill="#78716c"/>
+                    <rect x="0" y="415" width="900" height="10" fill="#a8a29e"/>
+                    <!-- Bare steel frame -->
+                    ${drawSteelFrame('#6b7280', '#9ca3af', 0.3)}
+                    <!-- Dirt and construction -->
+                    ${drawConstructionSite()}
+                    <text x="450" y="540" text-anchor="middle" fill="#57534e" font-size="14" font-family="system-ui">Bare Steel — Ready for Finishing</text>
+                </svg>`;
+            },
+            after: function() {
+                return `<svg viewBox="0 0 900 560" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="sky-a" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#3b82f6"/>
+                            <stop offset="100%" stop-color="#93c5fd"/>
+                        </linearGradient>
+                    </defs>
+                    <rect width="900" height="560" fill="url(#sky-a)"/>
+                    <rect x="0" y="420" width="900" height="140" fill="#4ade80" opacity="0.3"/>
+                    <rect x="0" y="420" width="900" height="140" fill="#166534"/>
+                    <!-- Finished building -->
+                    ${drawFinishedBuilding()}
+                    <text x="450" y="540" text-anchor="middle" fill="#15803d" font-size="14" font-family="system-ui">Completed Structure</text>
+                </svg>`;
+            }
+        },
+        'connection': {
+            before: function() {
+                return `<svg viewBox="0 0 900 560" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="900" height="560" fill="#1e293b"/>
+                    <!-- Blueprint style connection drawing -->
+                    <g opacity="0.1">
+                        ${drawGrid(900, 560, 20)}
+                    </g>
+                    <!-- Raw steel pieces laid out -->
+                    <text x="450" y="40" text-anchor="middle" fill="#64748b" font-size="16" font-family="monospace">DETAIL A: MOMENT CONNECTION — COMPONENTS</text>
+                    <rect x="100" y="80" width="120" height="400" rx="2" fill="#4a5568" stroke="#64748b" stroke-width="1"/>
+                    <text x="160" y="500" text-anchor="middle" fill="#94a3b8" font-size="11" font-family="monospace">COLUMN W14×90</text>
+                    <rect x="300" y="220" width="250" height="18" fill="#4a5568" stroke="#64748b" stroke-width="1"/>
+                    <rect x="300" y="340" width="250" height="18" fill="#4a5568" stroke="#64748b" stroke-width="1"/>
+                    <rect x="300" y="238" width="250" height="102" fill="#3f4f63" stroke="#64748b" stroke-width="1" opacity="0.5"/>
+                    <text x="425" y="390" text-anchor="middle" fill="#94a3b8" font-size="11" font-family="monospace">BEAM W21×62</text>
+                    <rect x="620" y="180" width="180" height="14" fill="#8b7355" stroke="#a08060" stroke-width="1"/>
+                    <text x="710" y="215" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="monospace">FLANGE PL ½"×8"</text>
+                    <rect x="620" y="240" width="180" height="14" fill="#8b7355" stroke="#a08060" stroke-width="1"/>
+                    <text x="710" y="275" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="monospace">FLANGE PL ½"×8"</text>
+                    <rect x="620" y="320" width="100" height="80" fill="#7a6a52" stroke="#a08060" stroke-width="1"/>
+                    <text x="670" y="420" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="monospace">SHEAR TAB ⅜"×9"</text>
+                    ${drawLooseBolts(640, 440, 8)}
+                    <text x="700" y="470" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="monospace">A325 BOLTS (10)</text>
+                </svg>`;
+            },
+            after: function() {
+                return `<svg viewBox="0 0 900 560" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="900" height="560" fill="#1e293b"/>
+                    <g opacity="0.1">
+                        ${drawGrid(900, 560, 20)}
+                    </g>
+                    <text x="450" y="40" text-anchor="middle" fill="#64748b" font-size="16" font-family="monospace">DETAIL A: MOMENT CONNECTION — ASSEMBLED</text>
+                    <!-- Assembled connection -->
+                    <rect x="200" y="80" width="120" height="400" rx="2" fill="#5a6577"/>
+                    <path d="M320,80 L340,95 L340,465 L320,480 Z" fill="#4a5568"/>
+                    <rect x="220" y="198" width="260" height="16" fill="#8b7355"/>
+                    <rect x="340" y="214" width="400" height="18" fill="#6b7b8d"/>
+                    <rect x="340" y="232" width="400" height="120" fill="#5a6a7c" opacity="0.5"/>
+                    <rect x="340" y="352" width="400" height="18" fill="#6b7b8d"/>
+                    <rect x="220" y="370" width="260" height="16" fill="#8b7355"/>
+                    <rect x="320" y="248" width="100" height="88" fill="#7a6a52"/>
+                    <!-- Bolts -->
+                    ${drawAssembledBolts()}
+                    <!-- Weld symbols -->
+                    <path d="M320,248 L308,258 L320,268" stroke="#f59e0b" fill="none" stroke-width="2"/>
+                    <path d="M320,316 L308,326 L320,336" stroke="#f59e0b" fill="none" stroke-width="2"/>
+                    <!-- Dimension lines -->
+                    <line x1="200" y1="500" x2="320" y2="500" stroke="#f59e0b" stroke-width="0.5" stroke-dasharray="4,4"/>
+                    <text x="260" y="515" text-anchor="middle" fill="#f59e0b" font-size="10" font-family="monospace">14"</text>
+                    <text x="450" y="540" text-anchor="middle" fill="#94a3b8" font-size="12" font-family="monospace">TORQUED &amp; INSPECTED ✓</text>
+                </svg>`;
+            }
+        },
+        'site': {
+            before: function() {
+                return `<svg viewBox="0 0 900 560" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="dawn" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#fdba74"/>
+                            <stop offset="60%" stop-color="#fed7aa"/>
+                            <stop offset="100%" stop-color="#d6d3d1"/>
+                        </linearGradient>
+                    </defs>
+                    <rect width="900" height="560" fill="url(#dawn)"/>
+                    <rect x="0" y="380" width="900" height="180" fill="#78716c"/>
+                    <!-- Empty lot -->
+                    <rect x="80" y="370" width="740" height="15" fill="#a8a29e" rx="2"/>
+                    <!-- Stakes and string lines -->
+                    ${drawSurveyStakes()}
+                    <!-- Equipment -->
+                    <rect x="650" y="320" width="80" height="55" rx="3" fill="#eab308" opacity="0.8"/>
+                    <rect x="660" y="300" width="30" height="20" fill="#ca8a04"/>
+                    <text x="450" y="540" text-anchor="middle" fill="#57534e" font-size="14" font-family="system-ui">Day 1 — Empty Lot</text>
+                </svg>`;
+            },
+            after: function() {
+                return `<svg viewBox="0 0 900 560" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="blue" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#2563eb"/>
+                            <stop offset="100%" stop-color="#60a5fa"/>
+                        </linearGradient>
+                    </defs>
+                    <rect width="900" height="560" fill="url(#blue)"/>
+                    <rect x="0" y="400" width="900" height="160" fill="#1f2937"/>
+                    <rect x="0" y="395" width="900" height="8" fill="#374151"/>
+                    <!-- Completed building with detail -->
+                    ${drawCompletedSite()}
+                    <text x="450" y="540" text-anchor="middle" fill="#9ca3af" font-size="14" font-family="system-ui">Day 90 — Steel Topped Out</text>
+                </svg>`;
+            }
+        }
+    };
+
+    function drawGrid(w, h, size) {
+        let lines = '';
+        for (let x = 0; x <= w; x += size) {
+            lines += `<line x1="${x}" y1="0" x2="${x}" y2="${h}" stroke="#475569" stroke-width="0.5"/>`;
+        }
+        for (let y = 0; y <= h; y += size) {
+            lines += `<line x1="0" y1="${y}" x2="${w}" y2="${y}" stroke="#475569" stroke-width="0.5"/>`;
+        }
+        return lines;
+    }
+
+    function drawSteelFrame(color1, color2, opacity) {
+        const cols = [150, 350, 550, 750];
+        const floors = [415, 300, 200, 110];
+        let svg = '';
+        cols.forEach(x => {
+            for (let i = 0; i < floors.length; i++) {
+                svg += `<rect x="${x-8}" y="${floors[i]}" width="16" height="${(i === 0 ? 0 : floors[i-1] - floors[i])}" fill="${color1}" opacity="${1-opacity}"/>`;
+            }
+        });
+        for (let i = 0; i < floors.length; i++) {
+            svg += `<rect x="${cols[0]}" y="${floors[i]-6}" width="${cols[3]-cols[0]}" height="12" fill="${color2}" opacity="${1-opacity}"/>`;
+        }
+        return svg;
+    }
+
+    function drawConstructionSite() {
+        return `
+            <rect x="100" y="425" width="120" height="8" fill="#a8a29e" rx="1" opacity="0.5"/>
+            <rect x="400" y="430" width="80" height="6" fill="#a8a29e" rx="1" opacity="0.4"/>
+            <rect x="700" y="428" width="60" height="5" fill="#a8a29e" rx="1" opacity="0.3"/>
+            <line x1="600" y1="200" x2="620" y2="415" stroke="#fbbf24" stroke-width="2" opacity="0.5"/>
+            <line x1="600" y1="200" x2="500" y2="300" stroke="#fbbf24" stroke-width="1.5" opacity="0.4"/>
+        `;
+    }
+
+    function drawFinishedBuilding() {
+        const cols = [150, 350, 550, 750];
+        const floors = [415, 300, 200, 110];
+        let svg = '';
+        for (let i = 1; i < floors.length; i++) {
+            svg += `<rect x="${cols[0]-15}" y="${floors[i]}" width="${cols[3]-cols[0]+30}" height="${floors[i-1]-floors[i]}" fill="#e2e8f0" stroke="#cbd5e1" stroke-width="1"/>`;
+            for (let c = 0; c < cols.length - 1; c++) {
+                for (let w = 0; w < 3; w++) {
+                    const wx = cols[c] + 20 + w * ((cols[c+1] - cols[c] - 40) / 3);
+                    svg += `<rect x="${wx}" y="${floors[i]+15}" width="${(cols[c+1]-cols[c]-60)/3}" height="${floors[i-1]-floors[i]-30}" fill="#bfdbfe" stroke="#93c5fd" stroke-width="0.5" rx="1"/>`;
+                }
+            }
+        }
+        svg += `<rect x="${cols[0]-20}" y="${floors[floors.length-1]-15}" width="${cols[3]-cols[0]+40}" height="18" fill="#94a3b8"/>`;
+        svg += `<rect x="350" y="${floors[floors.length-1]-40}" width="200" height="28" fill="#1e40af" rx="2"/>`;
+        svg += `<text x="450" y="${floors[floors.length-1]-20}" text-anchor="middle" fill="white" font-size="14" font-weight="bold" font-family="system-ui">CLARK IRON</text>`;
+        return svg;
+    }
+
+    function drawLooseBolts(x, y, count) {
+        let svg = '';
+        for (let i = 0; i < count; i++) {
+            const bx = x + (i % 4) * 25;
+            const by = y + Math.floor(i / 4) * 25;
+            svg += `<circle cx="${bx}" cy="${by}" r="6" fill="#374151" stroke="#4b5563" stroke-width="1.5"/>`;
+            svg += `<line x1="${bx-3}" y1="${by}" x2="${bx+3}" y2="${by}" stroke="#4b5563" stroke-width="1"/>`;
+        }
+        return svg;
+    }
+
+    function drawAssembledBolts() {
+        let svg = '';
+        const positions = [
+            [250, 206], [280, 206], [370, 206], [410, 206], [450, 206],
+            [250, 378], [280, 378], [370, 378], [410, 378], [450, 378],
+            [358, 268], [358, 295], [358, 318],
+            [398, 268], [398, 295], [398, 318]
+        ];
+        positions.forEach(([x, y]) => {
+            svg += `<circle cx="${x}" cy="${y}" r="5" fill="#374151" stroke="#1f2937" stroke-width="1.5"/>`;
+        });
+        return svg;
+    }
+
+    function drawSurveyStakes() {
+        let svg = '';
+        const stakes = [150, 300, 450, 600, 750];
+        stakes.forEach(x => {
+            svg += `<line x1="${x}" y1="350" x2="${x}" y2="385" stroke="#dc2626" stroke-width="2"/>`;
+            svg += `<rect x="${x-4}" y="348" width="8" height="8" fill="#dc2626"/>`;
+        });
+        svg += `<line x1="150" y1="355" x2="750" y2="355" stroke="#fbbf24" stroke-width="0.5" stroke-dasharray="8,4"/>`;
+        return svg;
+    }
+
+    function drawCompletedSite() {
+        const cols = [120, 320, 520, 720];
+        const floors = [395, 310, 230, 160, 100];
+        let svg = '';
+        cols.forEach(x => {
+            for (let i = 1; i < floors.length; i++) {
+                svg += `<rect x="${x-10}" y="${floors[i]}" width="20" height="${floors[i-1]-floors[i]}" fill="#6b7280"/>`;
+            }
+        });
+        for (let i = 0; i < floors.length; i++) {
+            svg += `<rect x="${cols[0]-5}" y="${floors[i]-5}" width="${cols[3]-cols[0]+10}" height="10" fill="#9ca3af"/>`;
+        }
+        for (let i = 1; i < floors.length; i++) {
+            if (i % 2 === 0) {
+                svg += `<line x1="${cols[0]}" y1="${floors[i]}" x2="${cols[1]}" y2="${floors[i-1]}" stroke="#f59e0b" stroke-width="3" opacity="0.6"/>`;
+                svg += `<line x1="${cols[1]}" y1="${floors[i]}" x2="${cols[0]}" y2="${floors[i-1]}" stroke="#f59e0b" stroke-width="3" opacity="0.6"/>`;
+            }
+        }
+        svg += `<rect x="${cols[0]-15}" y="${floors[floors.length-1]-20}" width="${cols[3]-cols[0]+30}" height="24" fill="#374151" rx="2"/>`;
+        svg += `<text x="${(cols[0]+cols[3])/2}" y="${floors[floors.length-1]-3}" text-anchor="middle" fill="#f59e0b" font-size="13" font-weight="bold" font-family="system-ui" letter-spacing="4">CLARK IRON ERECTORS</text>`;
+        return svg;
+    }
+
+    // --- Slider Logic ---
+    const container = document.getElementById('revealContainer');
+    const afterLayer = document.getElementById('layerAfter');
+    const sliderLine = document.getElementById('sliderLine');
+    const sliderHandle = document.getElementById('sliderHandle');
+    const instruction = document.getElementById('instruction');
+    let isDragging = false;
+    let hasDragged = false;
+    let currentVariant = 'steel-frame';
+
+    function setSliderPosition(pct) {
+        pct = Math.max(0, Math.min(100, pct));
+        afterLayer.style.clipPath = `inset(0 ${100 - pct}% 0 0)`;
+        sliderLine.style.left = pct + '%';
+        sliderHandle.style.left = pct + '%';
+    }
+
+    function getPercentage(e) {
+        const rect = container.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        return ((clientX - rect.left) / rect.width) * 100;
+    }
+
+    function startDrag(e) {
+        isDragging = true;
+        if (!hasDragged) {
+            instruction.style.opacity = '0';
+            hasDragged = true;
+        }
+        setSliderPosition(getPercentage(e));
+        e.preventDefault();
+    }
+
+    function onDrag(e) {
+        if (!isDragging) return;
+        setSliderPosition(getPercentage(e));
+        e.preventDefault();
+    }
+
+    function endDrag() {
+        isDragging = false;
+    }
+
+    container.addEventListener('mousedown', startDrag);
+    container.addEventListener('touchstart', startDrag, { passive: false });
+    window.addEventListener('mousemove', onDrag);
+    window.addEventListener('touchmove', onDrag, { passive: false });
+    window.addEventListener('mouseup', endDrag);
+    window.addEventListener('touchend', endDrag);
+
+    function loadVariant(name) {
+        currentVariant = name;
+        const scene = scenes[name];
+        document.getElementById('layerBefore').innerHTML = scene.before();
+        document.getElementById('layerAfter').innerHTML = scene.after();
+
+        document.querySelectorAll('.variant-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.variant === name);
+        });
+    }
+
+    document.querySelectorAll('.variant-btn').forEach(btn => {
+        btn.addEventListener('click', () => loadVariant(btn.dataset.variant));
+    });
+
+    loadVariant('steel-frame');
+    </script>
+</body>
+</html>

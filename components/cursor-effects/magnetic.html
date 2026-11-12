@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magnetic Cursor Effects</title>
+    <style>
+        :root {
+            --bg: #0f1419;
+            --surface: #1a1f2e;
+            --text: #e2e8f0;
+            --text-muted: #64748b;
+            --accent: #f59e0b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            min-height: 100vh;
+            padding: 16px;
+            overflow-x: hidden;
+        }
+
+        .page-header {
+            text-align: center;
+            padding: 3rem 0 2rem;
+        }
+
+        .page-header h1 {
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-header p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .section-label {
+            color: var(--accent);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            text-align: center;
+            margin: 3rem 0 1.5rem;
+        }
+
+        /* === Magnetic Buttons === */
+        .button-row {
+            display: flex;
+            gap: 32px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+            padding: 40px 0;
+        }
+
+        .magnetic-btn {
+            position: relative;
+            padding: 16px 40px;
+            font-size: 1rem;
+            font-weight: 600;
+            border: 2px solid var(--accent);
+            background: transparent;
+            color: var(--accent);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s, color 0.3s;
+            will-change: transform;
+        }
+
+        .magnetic-btn:hover {
+            background: var(--accent);
+            color: var(--bg);
+        }
+
+        .magnetic-btn .btn-text {
+            display: block;
+            will-change: transform;
+        }
+
+        /* === Magnetic Cards === */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 24px;
+            max-width: 900px;
+            margin: 0 auto 2rem;
+        }
+
+        .magnetic-card {
+            background: var(--surface);
+            border: 1px solid rgba(100, 116, 139, 0.15);
+            border-radius: 12px;
+            padding: 32px 24px;
+            text-align: center;
+            cursor: default;
+            will-change: transform;
+            transition: box-shadow 0.3s;
+        }
+
+        .magnetic-card:hover {
+            box-shadow: 0 8px 32px rgba(245, 158, 11, 0.1);
+        }
+
+        .magnetic-card .card-icon {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+        }
+
+        .magnetic-card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+
+        .magnetic-card p {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        .card-shine {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 12px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .magnetic-card {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .magnetic-card:hover .card-shine {
+            opacity: 1;
+        }
+
+        /* === Tilt Image === */
+        .tilt-showcase {
+            display: flex;
+            justify-content: center;
+            padding: 40px 0;
+        }
+
+        .tilt-frame {
+            width: min(500px, 100%);
+            aspect-ratio: 4 / 3;
+            background: var(--surface);
+            border-radius: 12px;
+            overflow: hidden;
+            will-change: transform;
+            perspective: 1000px;
+            position: relative;
+            border: 1px solid rgba(100, 116, 139, 0.15);
+        }
+
+        .tilt-frame svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .tilt-glare {
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.15) 0%, transparent 50%);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tilt-frame:hover .tilt-glare {
+            opacity: 1;
+        }
+
+        /* === Repel Text === */
+        .repel-area {
+            max-width: 700px;
+            margin: 2rem auto;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            min-height: 250px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .repel-word {
+            font-size: clamp(1.2rem, 3vw, 1.8rem);
+            font-weight: 700;
+            color: var(--text);
+            will-change: transform;
+            transition: transform 0.15s ease-out, color 0.3s;
+            display: inline-block;
+            cursor: default;
+        }
+
+        .repel-word:hover {
+            color: var(--accent);
+        }
+
+        .note {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin-top: 1rem;
+            font-style: italic;
+        }
+
+        @media (hover: none) {
+            .note::after {
+                content: ' (Best experienced on desktop with a mouse)';
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-header">
+        <h1>Magnetic Cursor Effects</h1>
+        <p>Elements that respond to your presence</p>
+    </div>
+
+    <div class="section-label">Magnetic Buttons</div>
+    <div class="button-row">
+        <button class="magnetic-btn" data-strength="40">
+            <span class="btn-text">Get a Quote</span>
+        </button>
+        <button class="magnetic-btn" data-strength="40">
+            <span class="btn-text">View Projects</span>
+        </button>
+        <button class="magnetic-btn" data-strength="40">
+            <span class="btn-text">Contact Us</span>
+        </button>
+    </div>
+
+    <div class="section-label">Magnetic Cards with Shine</div>
+    <div class="card-grid">
+        <div class="magnetic-card" data-strength="20" data-shine="true">
+            <div class="card-shine"></div>
+            <div class="card-icon">&#x1F3D7;</div>
+            <h3>Structural Steel</h3>
+            <p>Multi-story frames, bracing systems, and moment connections</p>
+        </div>
+        <div class="magnetic-card" data-strength="20" data-shine="true">
+            <div class="card-shine"></div>
+            <div class="card-icon">&#x2699;</div>
+            <h3>Miscellaneous Steel</h3>
+            <p>Stairs, handrails, embed plates, and custom fabrication</p>
+        </div>
+        <div class="magnetic-card" data-strength="20" data-shine="true">
+            <div class="card-shine"></div>
+            <div class="card-icon">&#x1F3E2;</div>
+            <h3>PEMB Erection</h3>
+            <p>Pre-engineered metal building assembly and erection</p>
+        </div>
+    </div>
+
+    <div class="section-label">3D Tilt on Hover</div>
+    <div class="tilt-showcase">
+        <div class="tilt-frame" id="tiltFrame">
+            <div class="tilt-glare" id="tiltGlare"></div>
+            <svg viewBox="0 0 500 375" xmlns="http://www.w3.org/2000/svg">
+                <rect width="500" height="375" fill="#1a1f2e"/>
+                <g opacity="0.06">
+                    <line x1="0" y1="0" x2="500" y2="375" stroke="#64748b" stroke-width="1"/>
+                    <line x1="500" y1="0" x2="0" y2="375" stroke="#64748b" stroke-width="1"/>
+                    <line x1="250" y1="0" x2="250" y2="375" stroke="#64748b" stroke-width="1"/>
+                    <line x1="0" y1="187" x2="500" y2="187" stroke="#64748b" stroke-width="1"/>
+                </g>
+                <!-- Simplified steel frame drawing -->
+                <g transform="translate(100, 60)">
+                    <rect x="0" y="250" width="300" height="8" fill="#4a5568" rx="1"/>
+                    <rect x="20" y="50" width="14" height="200" fill="#6b7280"/>
+                    <rect x="130" y="50" width="14" height="200" fill="#6b7280"/>
+                    <rect x="260" y="50" width="14" height="200" fill="#6b7280"/>
+                    <rect x="15" y="48" width="260" height="10" fill="#9ca3af"/>
+                    <rect x="15" y="148" width="260" height="8" fill="#9ca3af"/>
+                    <line x1="34" y1="58" x2="130" y2="148" stroke="#f59e0b" stroke-width="2.5" opacity="0.6"/>
+                    <line x1="130" y1="58" x2="34" y2="148" stroke="#f59e0b" stroke-width="2.5" opacity="0.6"/>
+                    <rect x="100" y="10" width="100" height="38" fill="#1e293b" rx="4" stroke="#f59e0b" stroke-width="1"/>
+                    <text x="150" y="35" text-anchor="middle" fill="#f59e0b" font-size="14" font-weight="bold" font-family="system-ui">CLARK IRON</text>
+                </g>
+            </svg>
+        </div>
+    </div>
+
+    <div class="section-label">Repel Text</div>
+    <div class="repel-area" id="repelArea">
+    </div>
+    <p class="note">Move your cursor over the elements above</p>
+
+    <script>
+    // === Magnetic Buttons ===
+    document.querySelectorAll('.magnetic-btn').forEach(btn => {
+        const strength = parseFloat(btn.dataset.strength) || 30;
+        const textEl = btn.querySelector('.btn-text');
+
+        btn.addEventListener('mousemove', (e) => {
+            const rect = btn.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+            const dx = e.clientX - cx;
+            const dy = e.clientY - cy;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const maxDist = Math.max(rect.width, rect.height);
+            const pull = Math.min(dist / maxDist, 1);
+
+            btn.style.transform = `translate(${dx * pull * 0.4}px, ${dy * pull * 0.4}px)`;
+            if (textEl) {
+                textEl.style.transform = `translate(${dx * pull * 0.2}px, ${dy * pull * 0.2}px)`;
+            }
+        });
+
+        btn.addEventListener('mouseleave', () => {
+            btn.style.transform = 'translate(0, 0)';
+            if (textEl) textEl.style.transform = 'translate(0, 0)';
+            btn.style.transition = 'transform 0.5s cubic-bezier(0.22, 1, 0.36, 1)';
+            if (textEl) textEl.style.transition = 'transform 0.5s cubic-bezier(0.22, 1, 0.36, 1)';
+            setTimeout(() => {
+                btn.style.transition = '';
+                if (textEl) textEl.style.transition = '';
+            }, 500);
+        });
+    });
+
+    // === Magnetic Cards with Shine ===
+    document.querySelectorAll('.magnetic-card').forEach(card => {
+        const strength = parseFloat(card.dataset.strength) || 15;
+        const shine = card.querySelector('.card-shine');
+
+        card.addEventListener('mousemove', (e) => {
+            const rect = card.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+            const dx = e.clientX - cx;
+            const dy = e.clientY - cy;
+
+            const rotateX = (dy / rect.height) * -strength;
+            const rotateY = (dx / rect.width) * strength;
+
+            card.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+
+            if (shine) {
+                const px = ((e.clientX - rect.left) / rect.width) * 100;
+                const py = ((e.clientY - rect.top) / rect.height) * 100;
+                shine.style.background = `radial-gradient(circle at ${px}% ${py}%, rgba(245,158,11,0.12) 0%, transparent 50%)`;
+            }
+        });
+
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = 'perspective(800px) rotateX(0) rotateY(0) scale(1)';
+            card.style.transition = 'transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s';
+            setTimeout(() => { card.style.transition = 'box-shadow 0.3s'; }, 600);
+        });
+    });
+
+    // === 3D Tilt Frame ===
+    const tiltFrame = document.getElementById('tiltFrame');
+    const tiltGlare = document.getElementById('tiltGlare');
+
+    tiltFrame.addEventListener('mousemove', (e) => {
+        const rect = tiltFrame.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        const dx = e.clientX - cx;
+        const dy = e.clientY - cy;
+
+        const rotateX = (dy / rect.height) * -15;
+        const rotateY = (dx / rect.width) * 15;
+
+        tiltFrame.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+
+        const px = ((e.clientX - rect.left) / rect.width) * 100;
+        const py = ((e.clientY - rect.top) / rect.height) * 100;
+        tiltGlare.style.background = `radial-gradient(circle at ${px}% ${py}%, rgba(255,255,255,0.18) 0%, transparent 50%)`;
+    });
+
+    tiltFrame.addEventListener('mouseleave', () => {
+        tiltFrame.style.transform = 'perspective(1000px) rotateX(0) rotateY(0)';
+        tiltFrame.style.transition = 'transform 0.8s cubic-bezier(0.22, 1, 0.36, 1)';
+        setTimeout(() => { tiltFrame.style.transition = ''; }, 800);
+    });
+
+    // === Repel Text ===
+    const repelArea = document.getElementById('repelArea');
+    const words = ['STRUCTURAL', 'STEEL', 'BUILT', 'TO', 'LAST', '—', 'PRECISION',
+                   'ERECTION', 'SAFETY', 'FIRST', 'EVERY', 'BEAM', 'EVERY', 'BOLT'];
+
+    words.forEach(word => {
+        const span = document.createElement('span');
+        span.className = 'repel-word';
+        span.textContent = word;
+        repelArea.appendChild(span);
+    });
+
+    const repelWords = repelArea.querySelectorAll('.repel-word');
+
+    repelArea.addEventListener('mousemove', (e) => {
+        repelWords.forEach(word => {
+            const rect = word.getBoundingClientRect();
+            const wcx = rect.left + rect.width / 2;
+            const wcy = rect.top + rect.height / 2;
+            const dx = wcx - e.clientX;
+            const dy = wcy - e.clientY;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const maxDist = 150;
+
+            if (dist < maxDist) {
+                const force = (1 - dist / maxDist) * 30;
+                const angle = Math.atan2(dy, dx);
+                const tx = Math.cos(angle) * force;
+                const ty = Math.sin(angle) * force;
+                word.style.transform = `translate(${tx}px, ${ty}px)`;
+            } else {
+                word.style.transform = 'translate(0, 0)';
+            }
+        });
+    });
+
+    repelArea.addEventListener('mouseleave', () => {
+        repelWords.forEach(word => {
+            word.style.transform = 'translate(0, 0)';
+        });
+    });
+    </script>
+</body>
+</html>

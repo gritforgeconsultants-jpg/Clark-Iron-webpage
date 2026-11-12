@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animated Counters — Stats That Count</title>
+    <style>
+        :root {
+            --bg: #0f1419;
+            --surface: #1a1f2e;
+            --text: #e2e8f0;
+            --text-muted: #64748b;
+            --accent: #f59e0b;
+            --steel: #6b7280;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            padding: 16px;
+        }
+
+        .spacer {
+            height: 60vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .spacer h2 {
+            font-size: clamp(1.2rem, 3vw, 1.8rem);
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .spacer .arrow {
+            margin-top: 1rem;
+            animation: bounce 2s infinite;
+            color: var(--accent);
+            font-size: 1.5rem;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(10px); }
+        }
+
+        .stats-section {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 60px 0;
+        }
+
+        .stats-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .stats-header h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .stats-header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 24px;
+            margin-bottom: 4rem;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid rgba(100, 116, 139, 0.15);
+            border-radius: 12px;
+            padding: 32px 24px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            transform: scaleX(0);
+            transition: transform 1s ease;
+        }
+
+        .stat-card.visible::before {
+            transform: scaleX(1);
+        }
+
+        .stat-icon {
+            font-size: 2rem;
+            margin-bottom: 12px;
+            opacity: 0.7;
+        }
+
+        .stat-number {
+            font-size: clamp(2.5rem, 6vw, 3.5rem);
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+            color: var(--text);
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+
+        .stat-number .prefix {
+            font-size: 0.6em;
+            color: var(--accent);
+        }
+
+        .stat-number .suffix {
+            font-size: 0.5em;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .stat-bar {
+            margin-top: 16px;
+            height: 4px;
+            background: rgba(100, 116, 139, 0.15);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .stat-bar-fill {
+            height: 100%;
+            background: var(--accent);
+            border-radius: 2px;
+            width: 0%;
+            transition: width 2s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .stat-card.visible .stat-bar-fill {
+            width: var(--bar-width, 0%);
+        }
+
+        /* Ring counter variant */
+        .ring-stats {
+            display: flex;
+            justify-content: center;
+            gap: 48px;
+            flex-wrap: wrap;
+            margin-bottom: 4rem;
+        }
+
+        .ring-stat {
+            text-align: center;
+        }
+
+        .ring-svg {
+            width: 160px;
+            height: 160px;
+        }
+
+        .ring-bg {
+            fill: none;
+            stroke: rgba(100, 116, 139, 0.15);
+            stroke-width: 8;
+        }
+
+        .ring-fill {
+            fill: none;
+            stroke: var(--accent);
+            stroke-width: 8;
+            stroke-linecap: round;
+            stroke-dasharray: 377;
+            stroke-dashoffset: 377;
+            transform: rotate(-90deg);
+            transform-origin: center;
+            transition: stroke-dashoffset 2.5s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .ring-stat.visible .ring-fill {
+            stroke-dashoffset: var(--ring-offset, 377);
+        }
+
+        .ring-value {
+            font-size: 2rem;
+            font-weight: 700;
+            fill: var(--text);
+        }
+
+        .ring-label {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-top: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Ticker variant */
+        .ticker-row {
+            display: flex;
+            justify-content: center;
+            align-items: baseline;
+            gap: 8px;
+            font-size: clamp(3rem, 10vw, 6rem);
+            font-weight: 900;
+            font-variant-numeric: tabular-nums;
+            margin: 2rem 0;
+            overflow: hidden;
+        }
+
+        .ticker-digit {
+            display: inline-block;
+            position: relative;
+            width: 0.65em;
+            height: 1.15em;
+            overflow: hidden;
+            background: var(--surface);
+            border-radius: 6px;
+            border: 1px solid rgba(100, 116, 139, 0.15);
+        }
+
+        .ticker-digit-inner {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            transition: transform 1.5s cubic-bezier(0.22, 1, 0.36, 1);
+            text-align: center;
+            line-height: 1.15em;
+        }
+
+        .ticker-comma {
+            font-size: 0.6em;
+            color: var(--text-muted);
+            align-self: flex-end;
+            margin-bottom: 0.2em;
+        }
+
+        .ticker-label {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 3rem;
+        }
+
+        .section-label {
+            text-align: center;
+            color: var(--accent);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: 1.5rem;
+            margin-top: 3rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="spacer">
+        <h2>Scroll down to see the numbers</h2>
+        <div class="arrow">&#x2193;</div>
+    </div>
+
+    <section class="stats-section">
+        <div class="stats-header">
+            <h1>By The Numbers</h1>
+            <p>Two decades of steel, built to spec</p>
+        </div>
+
+        <div class="section-label">Card Counters</div>
+        <div class="stats-grid">
+            <div class="stat-card" data-target="12847" data-suffix=" tons" data-bar="85">
+                <div class="stat-icon">&#x2693;</div>
+                <div class="stat-number"><span class="counter">0</span><span class="suffix"> tons</span></div>
+                <div class="stat-label">Steel Erected</div>
+                <div class="stat-bar"><div class="stat-bar-fill" style="--bar-width: 85%"></div></div>
+            </div>
+            <div class="stat-card" data-target="340" data-suffix="+" data-bar="70">
+                <div class="stat-icon">&#x1F3D7;</div>
+                <div class="stat-number"><span class="counter">0</span><span class="suffix">+</span></div>
+                <div class="stat-label">Projects Completed</div>
+                <div class="stat-bar"><div class="stat-bar-fill" style="--bar-width: 70%"></div></div>
+            </div>
+            <div class="stat-card" data-target="99.2" data-prefix="" data-suffix="%" data-bar="99" data-decimals="1">
+                <div class="stat-icon">&#x2705;</div>
+                <div class="stat-number"><span class="counter">0</span><span class="suffix">%</span></div>
+                <div class="stat-label">Safety Rating</div>
+                <div class="stat-bar"><div class="stat-bar-fill" style="--bar-width: 99%"></div></div>
+            </div>
+            <div class="stat-card" data-target="18" data-suffix=" yrs" data-bar="90">
+                <div class="stat-icon">&#x1F527;</div>
+                <div class="stat-number"><span class="counter">0</span><span class="suffix"> yrs</span></div>
+                <div class="stat-label">In Business</div>
+                <div class="stat-bar"><div class="stat-bar-fill" style="--bar-width: 90%"></div></div>
+            </div>
+        </div>
+
+        <div class="section-label">Ring Gauges</div>
+        <div class="ring-stats">
+            <div class="ring-stat" data-ring-pct="96">
+                <svg class="ring-svg" viewBox="0 0 128 128">
+                    <circle class="ring-bg" cx="64" cy="64" r="56"/>
+                    <circle class="ring-fill" cx="64" cy="64" r="56" style="--ring-offset: 377"/>
+                    <text class="ring-value" x="64" y="70" text-anchor="middle">
+                        <tspan class="ring-counter">0</tspan>%
+                    </text>
+                </svg>
+                <div class="ring-label">On-Time Delivery</div>
+            </div>
+            <div class="ring-stat" data-ring-pct="100">
+                <svg class="ring-svg" viewBox="0 0 128 128">
+                    <circle class="ring-bg" cx="64" cy="64" r="56"/>
+                    <circle class="ring-fill" cx="64" cy="64" r="56" style="--ring-offset: 377"/>
+                    <text class="ring-value" x="64" y="70" text-anchor="middle">
+                        <tspan class="ring-counter">0</tspan>%
+                    </text>
+                </svg>
+                <div class="ring-label">Client Retention</div>
+            </div>
+            <div class="ring-stat" data-ring-pct="45">
+                <svg class="ring-svg" viewBox="0 0 128 128">
+                    <circle class="ring-bg" cx="64" cy="64" r="56"/>
+                    <circle class="ring-fill" cx="64" cy="64" r="56" style="--ring-offset: 377"/>
+                    <text class="ring-value" x="64" y="70" text-anchor="middle">
+                        <tspan class="ring-counter">0</tspan>
+                    </text>
+                </svg>
+                <div class="ring-label">Active Crew Members</div>
+            </div>
+        </div>
+
+        <div class="section-label">Ticker Counter</div>
+        <div class="ticker-row" id="ticker" data-target="12847">
+        </div>
+        <div class="ticker-label">Total Tons of Steel Erected</div>
+    </section>
+
+    <div class="spacer"></div>
+
+    <script>
+    function easeOutExpo(t) {
+        return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+    }
+
+    function animateCounter(el, target, decimals, duration) {
+        const start = performance.now();
+        function update(now) {
+            const elapsed = Math.min((now - start) / duration, 1);
+            const progress = easeOutExpo(elapsed);
+            const current = target * progress;
+            if (decimals > 0) {
+                el.textContent = current.toFixed(decimals).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            } else {
+                el.textContent = Math.floor(current).toLocaleString();
+            }
+            if (elapsed < 1) requestAnimationFrame(update);
+            else {
+                if (decimals > 0) {
+                    el.textContent = target.toFixed(decimals).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                } else {
+                    el.textContent = Math.floor(target).toLocaleString();
+                }
+            }
+        }
+        requestAnimationFrame(update);
+    }
+
+    // Card counters
+    const cards = document.querySelectorAll('.stat-card');
+    const cardObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting && !entry.target.classList.contains('visible')) {
+                entry.target.classList.add('visible');
+                const target = parseFloat(entry.target.dataset.target);
+                const decimals = parseInt(entry.target.dataset.decimals || '0');
+                const counter = entry.target.querySelector('.counter');
+                animateCounter(counter, target, decimals, 2000);
+            }
+        });
+    }, { threshold: 0.3 });
+
+    cards.forEach(card => cardObserver.observe(card));
+
+    // Ring counters
+    const rings = document.querySelectorAll('.ring-stat');
+    const ringObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting && !entry.target.classList.contains('visible')) {
+                const pct = parseInt(entry.target.dataset.ringPct);
+                const circumference = 2 * Math.PI * 56; // ~351.86
+                const offset = circumference * (1 - pct / 100);
+                const ringFill = entry.target.querySelector('.ring-fill');
+                ringFill.style.setProperty('--ring-offset', offset);
+                entry.target.classList.add('visible');
+
+                const counter = entry.target.querySelector('.ring-counter');
+                animateCounter(counter, pct, 0, 2500);
+            }
+        });
+    }, { threshold: 0.3 });
+
+    rings.forEach(ring => ringObserver.observe(ring));
+
+    // Ticker counter
+    function buildTicker() {
+        const ticker = document.getElementById('ticker');
+        const target = ticker.dataset.target;
+        const digits = target.split('');
+        ticker.innerHTML = '';
+
+        digits.forEach((digit, i) => {
+            if (i > 0 && (digits.length - i) % 3 === 0) {
+                const comma = document.createElement('span');
+                comma.className = 'ticker-comma';
+                comma.textContent = ',';
+                ticker.appendChild(comma);
+            }
+
+            const el = document.createElement('span');
+            el.className = 'ticker-digit';
+
+            const inner = document.createElement('span');
+            inner.className = 'ticker-digit-inner';
+            let nums = '';
+            for (let n = 0; n <= 9; n++) {
+                nums += `<div>${n}</div>`;
+            }
+            inner.innerHTML = nums;
+            el.appendChild(inner);
+            el.dataset.target = digit;
+            ticker.appendChild(el);
+        });
+    }
+
+    buildTicker();
+
+    const tickerEl = document.getElementById('ticker');
+    const tickerObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting && !tickerEl.classList.contains('animated')) {
+                tickerEl.classList.add('animated');
+                const digitEls = tickerEl.querySelectorAll('.ticker-digit');
+                digitEls.forEach((el, i) => {
+                    const target = parseInt(el.dataset.target);
+                    const inner = el.querySelector('.ticker-digit-inner');
+                    setTimeout(() => {
+                        inner.style.transform = `translateY(-${target * 1.15}em)`;
+                    }, i * 150);
+                });
+            }
+        });
+    }, { threshold: 0.3 });
+
+    tickerObserver.observe(tickerEl);
+    </script>
+</body>
+</html>
