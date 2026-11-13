@@ -22,8 +22,10 @@ view is offscreen, the tab is hidden, or the scene is idle. Mobile rendering cap
 pixel density and uses smaller shadow maps. No CDN, API key, or additional
 runtime dependency is needed.
 
-Mouse dragging or two-finger touch rotates the view. Vertical single-finger
-scrolling remains available. The native range control supports keyboard input.
+Mouse dragging and one- or two-finger touch rotate the view. Scroll the page
+by swiping outside the model canvas. Mobile labels remain visible in both
+assembled and exploded views, with leader lines to the parts and collision
+avoidance along the screen edges. The native range control supports keyboard input.
 Pause disables animated transitions; manual controls remain available. Reduced
 motion starts paused and suppresses automatic scroll animation. Replay respects
 that preference. If JavaScript or WebGL is unavailable, a static description

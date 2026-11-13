@@ -30,9 +30,9 @@ const controls = new THREE.OrbitControls(camera, canvas);
 controls.enablePan = false;
 controls.enableZoom = false;
 controls.enableDamping = true;
-// Leave vertical touch gestures available for scrolling the page.
-controls.touches.ONE = null;
-controls.touches.TWO = THREE.TOUCH.ROTATE;
+// Rotate with one finger on the canvas; the surrounding page remains scrollable.
+controls.touches.ONE = THREE.TOUCH.ROTATE;
+controls.touches.TWO = THREE.TOUCH.DOLLY_ROTATE;
 controls.dampingFactor = 0.08;
 controls.rotateSpeed = 0.7;
 controls.minPolarAngle = Math.PI * 0.18;
@@ -281,6 +281,11 @@ scene.add(assembly);
 const parts = [];
 const callouts = [];
 const calloutLayer = document.getElementById('kinetic-callouts');
+const svgNS = 'http://www.w3.org/2000/svg';
+const mobileLeaders = document.createElementNS(svgNS, 'svg');
+mobileLeaders.classList.add('mobile-leaders');
+mobileLeaders.setAttribute('aria-hidden', 'true');
+calloutLayer.appendChild(mobileLeaders);
 
 function addPart(name, spec, objects, moves, opts = {}) {
     const g = new THREE.Group();
@@ -301,7 +306,9 @@ function callout(group, at, side, html) {
     el.className = 'callout ' + side;
     el.innerHTML = '<span class="dot"></span><span class="lead"></span><span class="txt">' + html + '</span>';
     calloutLayer.appendChild(el);
-    callouts.push({ anchor, el, side });
+    const leader = document.createElementNS(svgNS, 'line');
+    mobileLeaders.appendChild(leader);
+    callouts.push({ anchor, el, side, leader });
 }
 
 /* ---------- column ---------- */
@@ -581,18 +588,53 @@ function frameCamera(e) {
 }
 
 function placeCallouts(e) {
-    const alpha = smooth(0.62, 0.95, e);
+    const mobile = window.matchMedia('(max-width: 1000px)').matches;
+    const alpha = mobile ? 1 : smooth(0.62, 0.95, e);
     const w = stage.clientWidth, h = stage.clientHeight;
+    const columns = { l: [], r: [] };
     for (const c of callouts) {
-        if (alpha <= 0.01) { c.el.style.opacity = 0; continue; }
         c.anchor.getWorldPosition(projected).project(camera);
-        const x = (projected.x * 0.5 + 0.5) * w, y = (-projected.y * 0.5 + 0.5) * h;
-        let left = c.side === 'l';
-        if (left && x - c.width < 6) left = false;
-        else if (!left && x + c.width > w - 6) left = true;
-        c.el.classList.toggle('l', left);
-        c.el.style.opacity = projected.z < 1 ? alpha : 0;
-        c.el.style.transform = 'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px) translate(' + (left ? '-100%' : '0') + ',-50%)';
+        c.x = (projected.x * 0.5 + 0.5) * w;
+        c.y = (-projected.y * 0.5 + 0.5) * h;
+        const visible = projected.z > -1 && projected.z < 1 && alpha > 0.01;
+        c.el.style.opacity = visible ? alpha : 0;
+        c.leader.style.opacity = mobile && visible ? 1 : 0;
+        if (!visible) continue;
+        if (mobile) {
+            columns[c.side].push(c);
+        } else {
+            let left = c.side === 'l';
+            if (left && c.x - c.width < 6) left = false;
+            else if (!left && c.x + c.width > w - 6) left = true;
+            c.el.classList.toggle('l', left);
+            c.el.style.transform = `translate(${c.x.toFixed(1)}px,${c.y.toFixed(1)}px) translate(${left ? '-100%' : '0'},-50%)`;
+        }
+    }
+    // Pack labels down each screen edge, retaining a leader to the actual part.
+    for (const [side, labels] of Object.entries(columns)) {
+        labels.sort((a, b) => a.y - b.y);
+        for (const c of labels) c.height = c.el.offsetHeight;
+        const totalHeight = labels.reduce((sum, c) => sum + c.height, 0);
+        const gap = Math.min(5, Math.max(0, (h - 12 - totalHeight) / Math.max(1, labels.length - 1)));
+        let bottom = 6;
+        for (const c of labels) {
+            c.top = Math.max(bottom, Math.min(h - c.height - 6, c.y - c.height / 2));
+            bottom = c.top + c.height + gap;
+        }
+        let top = h - 6;
+        for (const c of [...labels].reverse()) {
+            c.top = Math.min(c.top, top - c.height);
+            top = c.top - gap;
+        }
+        for (const c of labels) {
+            const width = c.el.offsetWidth;
+            const x = side === 'l' ? 6 : w - width - 6;
+            c.el.style.transform = `translate(${x}px,${c.top}px)`;
+            c.leader.setAttribute('x1', c.x);
+            c.leader.setAttribute('y1', c.y);
+            c.leader.setAttribute('x2', side === 'l' ? x + width : x);
+            c.leader.setAttribute('y2', c.top + c.height / 2);
+        }
     }
 }
 

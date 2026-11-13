@@ -10,7 +10,7 @@
 #connection-study .narrative { height: 245vh; position: relative; }
 #connection-study .sticky { position: sticky; top: var(--study-header); height: calc(100svh - var(--study-header)); min-height: 420px; overflow: hidden; }
 #connection-study .stage { position: absolute; inset: 0 0 0 21%; background: radial-gradient(ellipse at 55% 42%, #fcfcf9, #e4e6e1 70%); }
-#connection-study canvas { width: 100%; height: 100%; display: block; touch-action: pan-y; }
+#connection-study canvas { width: 100%; height: 100%; display: block; touch-action: none; }
 #connection-study .scene-top { position: absolute; top: 24px; left: 4%; right: 4%; display: flex; justify-content: space-between; gap: 16px; pointer-events: none; font: 10px monospace; letter-spacing: .05em; }
 #connection-study .chapters { position: absolute; left: 4%; top: 17%; width: 200px; pointer-events: none; }
 #connection-study .chapter { opacity: .3; margin-bottom: 26px; transition: opacity .4s; }
@@ -29,6 +29,8 @@
 #connection-study .scene-note span:last-child { max-width: 310px; text-align: right; }
 #connection-study .rail { position: absolute; bottom: 0; width: 100%; height: 3px; background: #d3d8d0; }
 #connection-study .rail i { display: block; height: 100%; width: 0; background: var(--primary-color); }
+#connection-study .mobile-leaders { display: none; position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; }
+#connection-study .mobile-leaders line { stroke: #c8102e; stroke-width: 1; stroke-opacity: .65; }
 #kinetic-callouts { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 #connection-study .callout { position: absolute; left: 0; top: 0; display: flex; align-items: center; white-space: nowrap; opacity: 0; pointer-events: none; font: 11px Arial, sans-serif; }
 #connection-study .callout.l { flex-direction: row-reverse; }
@@ -45,7 +47,7 @@
 #connection-study:not(.ready) .narrative, #connection-study.unavailable .narrative { height: calc(100svh - var(--study-header)); min-height: 520px; }
 #connection-study :is(button, input):focus-visible, .connection-intro a:focus-visible { outline: 3px solid #c8102e; outline-offset: 4px; }
 @media (max-width: 1000px) {
-    #connection-study .stage { inset: 150px 0 155px; }
+    #connection-study .stage { inset: 150px 0 185px; }
     #connection-study .chapters { left: 5%; right: 5%; top: 55px; width: auto; }
     #connection-study .chapter { display: none; }
     #connection-study .chapter.active { display: block; }
@@ -57,7 +59,11 @@
     #connection-study .control-row { justify-content: center; flex-wrap: wrap; gap: 6px; }
     #connection-study .scene-note { font-size: 8px; gap: 16px; }
     #connection-study .scene-note span { max-width: 48%; }
-    #connection-study .callout, #connection-study .tip { display: none; }
+    #connection-study .tip { display: none; }
+    #connection-study .callout { font-size: 9.5px; white-space: normal; }
+    #connection-study .callout .txt { max-width: 124px; padding: 3px 4px; line-height: 1.15; }
+    #connection-study .callout .dot, #connection-study .callout .lead { display: none; }
+    #connection-study .mobile-leaders { display: block; }
     #connection-study .fallback { top: 10%; font-size: 13px; padding: 12px; }
 }
 @media (max-width: 768px) {
