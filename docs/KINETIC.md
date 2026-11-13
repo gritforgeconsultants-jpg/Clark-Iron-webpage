@@ -22,7 +22,9 @@ view is offscreen, the tab is hidden, or the scene is idle. Mobile rendering cap
 pixel density and uses smaller shadow maps. No CDN, API key, or additional
 runtime dependency is needed.
 
-Mouse dragging and one- or two-finger touch rotate the view. Scroll the page
+Left- or right-button mouse dragging and one- or two-finger touch rotate the view.
+Native browser dragging and selection on the canvas are suppressed so Edge
+keeps the gesture in the orbit controls. Scroll the page
 by swiping outside the model canvas. Mobile labels remain visible in both
 assembled and exploded views, with leader lines to the parts and collision
 avoidance along the screen edges. The native range control supports keyboard input.

@@ -26,7 +26,17 @@ scene.environmentIntensity = 0.95;
 const camera = new THREE.PerspectiveCamera(30, 1, 5, 2000);
 camera.position.set(0.58, 0.3, 0.76).multiplyScalar(300);
 
+// Keep Edge's native drag/selection behavior from taking over a model gesture.
+canvas.draggable = false;
+canvas.addEventListener('dragstart', event => event.preventDefault());
+canvas.addEventListener('pointerdown', event => {
+    if (event.pointerType === 'mouse' || event.pointerType === 'pen') event.preventDefault();
+}, { capture: true });
 const controls = new THREE.OrbitControls(camera, canvas);
+controls.cursorStyle = 'grab';
+controls.enableRotate = true;
+controls.mouseButtons.LEFT = THREE.MOUSE.ROTATE;
+controls.mouseButtons.RIGHT = THREE.MOUSE.ROTATE;
 controls.enablePan = false;
 controls.enableZoom = false;
 controls.enableDamping = true;

@@ -10,7 +10,8 @@
 #connection-study .narrative { height: 245vh; position: relative; }
 #connection-study .sticky { position: sticky; top: var(--study-header); height: calc(100svh - var(--study-header)); min-height: 420px; overflow: hidden; }
 #connection-study .stage { position: absolute; inset: 0 0 0 21%; background: radial-gradient(ellipse at 55% 42%, #fcfcf9, #e4e6e1 70%); }
-#connection-study canvas { width: 100%; height: 100%; display: block; touch-action: none; }
+#connection-study canvas { width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none; -webkit-user-drag: none; }
+#connection-study .stage.dragging canvas { cursor: grabbing; }
 #connection-study .scene-top { position: absolute; top: 24px; left: 4%; right: 4%; display: flex; justify-content: space-between; gap: 16px; pointer-events: none; font: 10px monospace; letter-spacing: .05em; }
 #connection-study .chapters { position: absolute; left: 4%; top: 17%; width: 200px; pointer-events: none; }
 #connection-study .chapter { opacity: .3; margin-bottom: 26px; transition: opacity .4s; }
