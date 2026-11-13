@@ -42,6 +42,7 @@
     <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml">
 
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/kinetic.css">
 
     <!-- Structured Data / Schema.org -->
     <script type="application/ld+json">
@@ -225,6 +226,69 @@
             </div>
         </div>
     </section>
+
+    <section class="connection-intro" aria-labelledby="connection-heading">
+        <div class="container">
+            <div><p class="connection-eyebrow">STRUCTURAL STEEL · FIELD PRECISION</p>
+            <h2 id="connection-heading">Every connection.<br><span>Built to matter.</span></h2></div>
+            <div><p>Planning, coordination, and execution bring a structure together. Explore the details behind a steel connection.</p>
+            <a href="#connection-study">EXPLORE THE CONNECTION ↓</a></div>
+        </div>
+    </section>
+    <section class="kinetic-study" id="connection-study" aria-label="Interactive steel connection">
+        <div id="kinetic-narrative" class="narrative">
+        <div class="sticky">
+        <div class="stage" id="kinetic-stage">
+        <canvas id="kinetic-scene" role="img" aria-label="Illustrative 3D beam-to-column steel connection. Drag with a mouse or two fingers to rotate; use the assembly slider to explore.">
+        </canvas>
+        <div id="kinetic-callouts">
+        </div>
+        <div class="tip" id="kinetic-tip">
+        </div>
+        <div class="fallback">This illustrative steel connection joins a W21×62 beam to a W14×90 column with flange plates, a shear tab, and structural bolts. The interactive view requires JavaScript and WebGL.</div>
+        </div>
+        <div class="scene-top">
+        <span>CLARK IRON / CONNECTION STUDY</span>
+        <span id="kinetic-phase">01 / COMPONENTS</span>
+        </div>
+        <div class="chapters">
+        <div class="chapter active">
+        <b>01 / THE PARTS</b>
+        <h2>Precision starts <br>with the details.</h2>
+        <p>Plates. Bolts. Structural members. Explore how the individual parts come together.</p>
+        </div>
+        <div class="chapter">
+        <b>02 / THE CONNECTION</b>
+        <h2>Coordinated. <br>Connected.</h2>
+        <p>A closer look at the interfaces behind a finished steel connection.</p>
+        </div>
+        <div class="chapter">
+        <b>03 / THE ASSEMBLY</b>
+        <h2>Many parts. <br>One structure.</h2>
+        <p>Drag to inspect. Use the slider to take it apart and see the details.</p>
+        </div>
+        </div>
+        <div class="hud">
+        <button type="button" disabled id="kinetic-toggle">Assemble</button>
+        <input disabled id="kinetic-scrub" type="range" min="0" max="1000" value="1000" aria-label="Exploded view amount">
+        <div class="control-row">
+        <button type="button" disabled id="kinetic-motion">Pause motion</button>
+        <button type="button" disabled id="kinetic-view">Reset view</button>
+        <button type="button" disabled id="kinetic-replay">Replay</button>
+        <button type="button" disabled id="kinetic-export">Export 4K still</button>
+        </div>
+        </div>
+        <div class="scene-note">
+        <span>DRAG / TWO FINGERS TO ORBIT · SLIDER TO EXPLORE</span>
+        <span>Illustrative geometry. Not an engineered connection or erection sequence.</span>
+        </div>
+        <div class="rail">
+        <i id="kinetic-progress">
+        </i>
+        </div>
+        </div>
+        </div>
+        </section>
 
     <!-- SECTION 3: SERVICES (Commercial buckets only) -->
     <section id="services" class="services">
@@ -475,5 +539,6 @@
     </footer>
 
     <script src="js/main.js"></script>
+    <script type="module" src="js/kinetic/load.js"></script>
 </body>
 </html>
